@@ -42,10 +42,11 @@ class LearningAgent(Agent):
         # Update epsilon using a decay function of your choice
 
         # self.epsilon = self.epsilon - 0.05
+        self.epsilon = max(self.epsilon - 0.01, 0.0)
         self.total_trials += 1
         # self.epsilon = 1.5 * math.exp(-0.6 * self.total_trials)
         # self.epsilon = math.cos(0.5 * self.total_trials)
-        self.epsilon = 1.0 / float(self.total_trials * self.total_trials)
+        # self.epsilon = 1.0 / float(self.total_trials * self.total_trials)
         # self.epsilon = math.pow(0.75, self.total_trials)
 
 
@@ -90,11 +91,8 @@ class LearningAgent(Agent):
         ###########
         # Calculate the maximum Q-value of all actions for a given state
 
-        maxQ = None
-
         actions = self.Q[state]
-
-        maxQ = max(actions, key=actions.get)
+        maxQ = max(actions.values())
         return maxQ
 
     def createQ(self, state):
@@ -120,7 +118,6 @@ class LearningAgent(Agent):
         # Set the agent state and default action
         self.state = state
         self.next_waypoint = self.planner.next_waypoint()
-        action = None
 
         ########### 
         ## TO DO ##
@@ -135,8 +132,9 @@ class LearningAgent(Agent):
             if random.random() < self.epsilon:
                 action = random.choice(self.valid_actions)
             else:
-                action = self.get_maxQ(state)
-
+                maxQ = self.get_maxQ(state)
+                candidate_actions = [action for action in self.valid_actions if self.Q[state][action] == maxQ]
+                action = random.choice(candidate_actions)
         return action
 
 
@@ -191,7 +189,7 @@ def run():
     #   learning   - set to True to force the driving agent to use Q-learning
     #    * epsilon - continuous value for the exploration factor, default is 1
     #    * alpha   - continuous value for the learning rate, default is 0.5
-    agent = env.create_agent(LearningAgent, learning=True, epsilon= 1.0, alpha = 0.8)
+    agent = env.create_agent(LearningAgent, learning=True, epsilon= 1.0, alpha = 0.95)
 
     ##############
     # Follow the driving agent
