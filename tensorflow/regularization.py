@@ -51,8 +51,8 @@ batch_size = 128
 # Subset the training data for faster turnaround.
 train_subset = 10000
 train_subset = 1 * batch_size
-# for beta in [0, 0.005, 0.008, 0.009, 0.01]:
-for beta in [0.009]:
+# for beta_2 in [0, 0.005, 0.008, 0.009, 0.01]:
+for beta_2 in [0.009]:
 
     graph_logistic_with_l2loss = tf.Graph()
     with graph_logistic_with_l2loss.as_default():
@@ -80,8 +80,8 @@ for beta in [0.009]:
 
         # we also need to add in a weighted l2 loss
         logits = tf.matmul(tf_train_dataset, weights) + biases
-        loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits, tf_train_labels)) + beta * tf.nn.l2_loss(
-            weights) + beta * tf.nn.l2_loss(biases)
+        loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits, tf_train_labels)) + beta_2 * tf.nn.l2_loss(
+            weights) + beta_2 * tf.nn.l2_loss(biases)
 
         # Optimizer.
         # We are going to find the minimum of this loss using gradient descent.
@@ -115,7 +115,7 @@ for beta in [0.009]:
             # just to get that one numpy array. Note that it recomputes all its graph
             # dependencies.
             # print('Validation accuracy: %.1f%%' % accuracy(valid_prediction.eval(), valid_labels))
-        print('Beta : %.3f Test accuracy: %.1f%%' % (beta, accuracy(test_prediction.eval(), test_labels)))
+        print('Beta/2 : %.3f Test accuracy: %.1f%%' % (beta_2, accuracy(test_prediction.eval(), test_labels)))
 
 for beta in [0.003]:
     # for beta in [0.0, 0.001, 0.002, 0.003]:
@@ -180,4 +180,4 @@ for beta in [0.003]:
                 # print("Validation accuracy: %.1f%%" % accuracy(
                 #     valid_prediction.eval(), valid_labels))
                 pass
-        print("Beta: %.3f Test accuracy: %.1f%%" % (beta, accuracy(test_prediction.eval(), test_labels)))
+        print("Beta/2: %.3f Test accuracy: %.1f%%" % (beta, accuracy(test_prediction.eval(), test_labels)))
