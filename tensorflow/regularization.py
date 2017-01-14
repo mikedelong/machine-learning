@@ -34,6 +34,14 @@ with open(pickle_file, 'rb') as f:
     print('Validation set', valid_dataset.shape, valid_labels.shape)
     print('Test set', test_dataset.shape, test_labels.shape)
 
+# with tf.device('/cpu:0'):
+
+# config = tf.ConfigProto()
+# # config.gpu_options.allow_growth = True
+# config.gpu_options.per_process_gpu_memory_fraction = 0.4
+
+config = tf.ConfigProto(device_count = {'GPU': 0})
+
 image_size = 28
 num_labels = 10
 
@@ -52,6 +60,7 @@ batch_size = 128
 train_subset = 10000
 train_subset = 1 * batch_size
 # for beta_2 in [0, 0.005, 0.008, 0.009, 0.01]:
+
 for beta_2 in [0.009]:
 
     graph_logistic_with_l2loss = tf.Graph()
@@ -79,9 +88,10 @@ for beta_2 in [0.009]:
         # cross-entropy across all training examples: that's our loss.
 
         # we also need to add in a weighted l2 loss
+
         logits = tf.matmul(tf_train_dataset, weights) + biases
-        loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits, tf_train_labels)) + beta_2 * tf.nn.l2_loss(
-            weights) + beta_2 * tf.nn.l2_loss(biases)
+        loss_1 = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits, tf_train_labels))
+        loss = tf.reduce_mean(loss_1 + beta_2 * tf.nn.l2_loss(weights) + beta_2 * tf.nn.l2_loss(biases))
 
         # Optimizer.
         # We are going to find the minimum of this loss using gradient descent.
@@ -97,7 +107,7 @@ for beta_2 in [0.009]:
 
     num_steps = 801
 
-    with tf.Session(graph=graph_logistic_with_l2loss) as session:
+    with tf.Session(graph=graph_logistic_with_l2loss, config=config) as session:
         # This is a one-time operation which ensures the parameters get initialized as
         # we described in the graph: random weights for the matrix, zeros for the
         # biases.
@@ -158,7 +168,7 @@ for beta in [0.003]:
 
     num_steps = 3001
 
-    with tf.Session(graph=graph_relu) as session:
+    with tf.Session(graph=graph_relu, config=config) as session:
         tf.global_variables_initializer().run()
         # print("Initialized")
         for step in range(num_steps):
