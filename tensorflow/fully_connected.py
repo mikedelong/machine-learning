@@ -90,7 +90,7 @@ with graph.as_default():
 
 num_steps = 801
 
-with tf.Session(graph=graph) as session:
+with tf.Session(graph=graph, config=tf.ConfigProto(device_count={'GPU': 0})) as session:
     # This is a one-time operation which ensures the parameters get initialized as
     # we described in the graph: random weights for the matrix, zeros for the
     # biases.
@@ -141,7 +141,7 @@ with graph.as_default():
 
 num_steps = 3001
 
-with tf.Session(graph=graph) as session:
+with tf.Session(graph=graph, config=tf.ConfigProto(device_count={'GPU': 0})) as session:
     tf.global_variables_initializer().run()
     print("Initialized")
     for step in range(num_steps):
@@ -202,7 +202,8 @@ with graph_relu.as_default():
     test_prediction = tf.nn.softmax(
         tf.matmul(tf.nn.relu(tf.matmul(tf_test_dataset, weights_1) + biases_1), weights_2) + biases_2)
 
-with tf.Session(graph=graph_relu) as session:
+
+with tf.Session(graph=graph_relu, config=tf.ConfigProto(device_count={'GPU': 0})) as session:
     tf.global_variables_initializer().run()
     print("Initialized")
     for step in range(num_steps):
@@ -216,8 +217,7 @@ with tf.Session(graph=graph_relu) as session:
         # The key of the dictionary is the placeholder node of the graph to be fed,
         # and the value is the numpy array to feed to it.
         feed_dict = {tf_train_dataset: batch_data, tf_train_labels: batch_labels}
-        _, l, predictions = session.run(
-            [optimizer, loss, train_prediction], feed_dict=feed_dict)
+        _, l, predictions = session.run([optimizer, loss, train_prediction], feed_dict=feed_dict)
         if (step % 500 == 0):
             print("Minibatch loss at step %d: %f" % (step, l))
             print("Minibatch accuracy: %.1f%%" % accuracy(predictions, batch_labels))
