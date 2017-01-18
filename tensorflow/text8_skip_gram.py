@@ -39,24 +39,28 @@ def read_data(arg_filename):
     return result
 
 
-def build_dataset(words):
+def build_dataset(arg_words):
     result_count = [['UNK', -1]]
-    result_count.extend(collections.Counter(words).most_common(vocabulary_size - 1))
-    dictionary = dict()
+    # result_count.extend(collections.Counter(arg_words).most_common(vocabulary_size - 1))
+    word_counter = collections.Counter()
+    for item in arg_words:
+        word_counter[item] += 1
+    result_count.extend(word_counter.most_common(vocabulary_size - 1))
+    result_dictionary = dict()
     for word, _ in result_count:
-        dictionary[word] = len(dictionary)
-    data = list()
+        result_dictionary[word] = len(result_dictionary)
+    result_data = list()
     unk_count = 0
-    for word in words:
-        if word in dictionary:
-            index = dictionary[word]
+    for word in arg_words:
+        if word in result_dictionary:
+            index = result_dictionary[word]
         else:
             index = 0  # dictionary['UNK']
-            unk_count = unk_count + 1
-        data.append(index)
+            unk_count += 1
+        result_data.append(index)
     result_count[0][1] = unk_count
-    result_reverse_dictionary = dict(zip(dictionary.values(), dictionary.keys()))
-    return data, result_count, dictionary, result_reverse_dictionary
+    result_reverse_dictionary = dict(zip(result_dictionary.values(), result_dictionary.keys()))
+    return result_data, result_count, result_dictionary, result_reverse_dictionary
 
 
 def generate_batch(arg_batch_size, arg_num_skips, arg_skip_window):
@@ -106,17 +110,17 @@ words = read_data(filename)
 logging.info('Data size %d' % len(words))
 vocabulary_size = 50000
 data, count, dictionary, reverse_dictionary = build_dataset(words)
-logging.info('Most common words (+UNK)', count[:5])
-logging.info('Sample data', data[:10])
+logging.info('Most common words (+UNK): %s' % count[:5])
+logging.info('Sample data: %s' % data[:10])
 del words  # Hint to reduce memory.
 # data_index = 0
-logging.info('data:', [reverse_dictionary[di] for di in data[:8]])
+logging.info('data: %s' % [reverse_dictionary[di] for di in data[:8]])
 for num_skips, skip_window in [(2, 1), (4, 2)]:
     data_index = 0
     batch, labels = generate_batch(arg_batch_size=8, arg_num_skips=num_skips, arg_skip_window=skip_window)
     logging.info('\nwith num_skips = %d and skip_window = %d:' % (num_skips, skip_window))
-    logging.info('    batch:', [reverse_dictionary[bi] for bi in batch])
-    logging.info('    labels:', [reverse_dictionary[li] for li in labels.reshape(8)])
+    logging.info('    batch: %s' % [reverse_dictionary[bi] for bi in batch])
+    logging.info('    labels: %s' % [reverse_dictionary[li] for li in labels.reshape(8)])
 batch_size = 128
 embedding_size = 128  # Dimension of the embedding vector.
 skip_window = 1  # How many words to consider left and right.
@@ -164,7 +168,7 @@ with graph.as_default(), tf.device('/cpu:0'):
     # Compute the similarity between minibatch examples and all embeddings.
     # We use the cosine distance:
     norm = tf.sqrt(tf.reduce_sum(tf.square(embeddings), 1, keep_dims=True))
-    normalized_embeddings = embeddings / norm
+    normalized_embeddings = tf.divide(embeddings, norm)
     valid_embeddings = tf.nn.embedding_lookup(normalized_embeddings, valid_dataset)
     similarity = tf.matmul(valid_embeddings, tf.transpose(normalized_embeddings))
 
