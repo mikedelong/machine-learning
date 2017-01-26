@@ -15,7 +15,6 @@ import numpy as np
 import tensorflow as tf
 from matplotlib import pylab
 from sklearn.manifold import TSNE
-import string
 
 start_time = time.time()
 
@@ -32,12 +31,11 @@ def maybe_download(arg_filename, expected_bytes):
         raise Exception('Failed to verify ' + arg_filename + '. Can you get to it with a browser?')
     return arg_filename
 
+
 def tokenize(arg_string):
-    result = arg_string.translate(None, string.punctuation)
-    if len(result) < 2:
-        return None
-    else:
-        return result
+    result = arg_string.strip('{}[]()~/?,;:. ')
+    return result if len(result) > 2 else None
+
 
 def read_data(arg_filename):
     """Extract the first file enclosed in a zip file as a list of words"""
@@ -95,6 +93,7 @@ def generate_batch(arg_batch_size, arg_num_skips, arg_skip_window):
         data_index = (data_index + 1) % len(data)
     return result_batch, result_labels
 
+ignore_list = ['for']
 
 def plot(arg_embeddings, arg_labels, arg_file_name):
     assert arg_embeddings.shape[0] >= len(arg_labels), 'More labels than embeddings'
@@ -103,7 +102,8 @@ def plot(arg_embeddings, arg_labels, arg_file_name):
         x, y = arg_embeddings[index, :]
         pylab.scatter(x, y)
         label = str(label).decode('utf-8', 'ignore').encode('ascii', 'ignore')
-        pylab.annotate(label, xy=(x, y), xytext=(5, 2), textcoords='offset points', ha='right', va='bottom')
+        if label.lower() not in ignore_list:
+            pylab.annotate(label, xy=(x, y), xytext=(5, 2), textcoords='offset points', ha='right', va='bottom')
     pylab.savefig(arg_file_name + '.png')
     pylab.savefig(arg_file_name + '.pdf')
     pylab.show()
@@ -183,7 +183,8 @@ with graph.as_default(), tf.device('/cpu:0'):
     valid_embeddings = tf.nn.embedding_lookup(normalized_embeddings, valid_dataset)
     similarity = tf.matmul(valid_embeddings, tf.transpose(normalized_embeddings))
 
-num_steps = 500001
+# todo make this a setting
+num_steps = 100001
 
 config = tf.ConfigProto(device_count={'GPU': 0})
 
@@ -219,7 +220,8 @@ with tf.Session(graph=graph, config=config) as session:
                 logging.info(log)
     final_embeddings = normalized_embeddings.eval()
 
-num_points = 400
+# todo make this a setting
+num_points = 100 # was 400
 
 tsne = TSNE(perplexity=30, n_components=2, init='pca', n_iter=5000)
 two_d_embeddings = tsne.fit_transform(final_embeddings[1:num_points + 1, :])
