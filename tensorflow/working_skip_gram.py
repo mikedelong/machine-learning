@@ -13,7 +13,7 @@ from urllib import urlretrieve
 
 import numpy as np
 import tensorflow as tf
-from matplotlib import pylab
+from matplotlib import pyplot
 from sklearn.manifold import TSNE
 
 start_time = time.time()
@@ -33,7 +33,7 @@ def maybe_download(arg_filename, expected_bytes):
 
 
 def tokenize(arg_string):
-    result = arg_string.strip('{}[]()~/?,;:. ')
+    result = arg_string.strip('{}[]()~/?,;:. -"\'')
     return result if len(result) > 2 else None
 
 
@@ -93,20 +93,87 @@ def generate_batch(arg_batch_size, arg_num_skips, arg_skip_window):
         data_index = (data_index + 1) % len(data)
     return result_batch, result_labels
 
-ignore_list = ['for']
+ignore_list = [
+    'all',
+    'and',
+    'any',
+    'appear',
+    'are',
+    'be',
+    'been',
+    'because',
+    'both',
+    'but',
+    'came',
+    'could',
+    'each',
+    'for',
+    'from',
+    'had',
+    'has',
+    'have',
+    'in',
+    'into',
+    'keep',
+    'kept',
+    'make',
+    'may',
+    'much',
+    'need',
+    'not',
+    'only',
+    'out',
+    'per',
+    'some',
+    'tell',
+    'than',
+    'that',
+    'the',
+    'their',
+    'them',
+    'then',
+    'there',
+    'these',
+    'they',
+    'this',
+    'tion',
+    'told',
+    'was',
+    'were',
+    'what',
+    'who',
+    'where',
+    'will',
+    'with',
+    'work',
+    'you',
+    ''
+]
+
 
 def plot(arg_embeddings, arg_labels, arg_file_name):
     assert arg_embeddings.shape[0] >= len(arg_labels), 'More labels than embeddings'
-    pylab.figure(figsize=(18, 18))  # in inches
+    pyplot.figure(figsize=(18, 18))  # in inches
+    pyplot.axis('off')
+    x_min = 0
+    x_max = 0
+    y_min = 0
+    y_max = 0
     for index, label in enumerate(arg_labels):
         x, y = arg_embeddings[index, :]
-        pylab.scatter(x, y)
         label = str(label).decode('utf-8', 'ignore').encode('ascii', 'ignore')
         if label.lower() not in ignore_list:
-            pylab.annotate(label, xy=(x, y), xytext=(5, 2), textcoords='offset points', ha='right', va='bottom')
-    pylab.savefig(arg_file_name + '.png')
-    pylab.savefig(arg_file_name + '.pdf')
-    pylab.show()
+            x_min = min(x, x_min)
+            x_max = max(x, x_max)
+            y_min = min(y, y_min)
+            y_max = max(y, y_max)
+            pyplot.annotate(label, xy=(x, y), xytext=(0, 0), textcoords='offset points')
+    axes = pyplot.gca()
+    axes.set_xlim([x_min - 1, x_max + 1])
+    axes.set_ylim([y_min - 1, y_max + 1])
+    pyplot.savefig(arg_file_name + '.png', bbox_inches='tight', pad_inches=0)
+    pyplot.savefig(arg_file_name + '.pdf')
+    pyplot.show()
 
 
 random_seed = 1
@@ -184,7 +251,7 @@ with graph.as_default(), tf.device('/cpu:0'):
     similarity = tf.matmul(valid_embeddings, tf.transpose(normalized_embeddings))
 
 # todo make this a setting
-num_steps = 100001
+num_steps = 3000001
 
 config = tf.ConfigProto(device_count={'GPU': 0})
 
@@ -221,7 +288,7 @@ with tf.Session(graph=graph, config=config) as session:
     final_embeddings = normalized_embeddings.eval()
 
 # todo make this a setting
-num_points = 100 # was 400
+num_points = 500  # was 400
 
 tsne = TSNE(perplexity=30, n_components=2, init='pca', n_iter=5000)
 two_d_embeddings = tsne.fit_transform(final_embeddings[1:num_points + 1, :])
