@@ -14,9 +14,16 @@ from urllib import urlretrieve
 import numpy as np
 import tensorflow as tf
 from matplotlib import pyplot
+from nltk.corpus import stopwords
 from sklearn.manifold import TSNE
 
 start_time = time.time()
+our_stopwords = stopwords.words('english')
+partials = ['roject', 'sectio', 'ribution', 'emselves', 'planni', 'ture', 'justifica', 'p~ease', 'tion', 'offi', 'ype']
+our_stopwords += partials
+common_words = ['', 'given', 'kept', 'appear', 'may', 'could', 'make', 'work', 'send', 'keep', 'much', 'per', 'need',
+                  'came', 'tell', 'sent', 'told', 'use']
+our_stopwords += common_words
 
 
 def maybe_download(arg_filename, expected_bytes):
@@ -93,63 +100,6 @@ def generate_batch(arg_batch_size, arg_num_skips, arg_skip_window):
         data_index = (data_index + 1) % len(data)
     return result_batch, result_labels
 
-ignore_list = [
-    'all',
-    'and',
-    'any',
-    'appear',
-    'are',
-    'be',
-    'been',
-    'because',
-    'both',
-    'but',
-    'came',
-    'could',
-    'each',
-    'for',
-    'from',
-    'had',
-    'has',
-    'have',
-    'in',
-    'into',
-    'keep',
-    'kept',
-    'make',
-    'may',
-    'much',
-    'need',
-    'not',
-    'only',
-    'out',
-    'per',
-    'some',
-    'tell',
-    'than',
-    'that',
-    'the',
-    'their',
-    'them',
-    'then',
-    'there',
-    'these',
-    'they',
-    'this',
-    'tion',
-    'told',
-    'was',
-    'were',
-    'what',
-    'who',
-    'where',
-    'will',
-    'with',
-    'work',
-    'you',
-    ''
-]
-
 
 def plot(arg_embeddings, arg_labels, arg_file_name):
     assert arg_embeddings.shape[0] >= len(arg_labels), 'More labels than embeddings'
@@ -159,20 +109,23 @@ def plot(arg_embeddings, arg_labels, arg_file_name):
     x_max = 0
     y_min = 0
     y_max = 0
+    displayed_count = 0
     for index, label in enumerate(arg_labels):
         x, y = arg_embeddings[index, :]
         label = str(label).decode('utf-8', 'ignore').encode('ascii', 'ignore')
-        if label.lower() not in ignore_list:
+        if label.lower() not in our_stopwords:
             x_min = min(x, x_min)
             x_max = max(x, x_max)
             y_min = min(y, y_min)
             y_max = max(y, y_max)
             pyplot.annotate(label, xy=(x, y), xytext=(0, 0), textcoords='offset points')
+            displayed_count += 1
     axes = pyplot.gca()
     axes.set_xlim([x_min - 1, x_max + 1])
     axes.set_ylim([y_min - 1, y_max + 1])
     pyplot.savefig(arg_file_name + '.png', bbox_inches='tight', pad_inches=0)
     pyplot.savefig(arg_file_name + '.pdf')
+    logging.info('displaying %d labels' % displayed_count)
     pyplot.show()
 
 
