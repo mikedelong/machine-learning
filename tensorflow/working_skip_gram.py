@@ -113,13 +113,16 @@ def plot(arg_embeddings, arg_labels, arg_file_name):
     for index, label in enumerate(arg_labels):
         x, y = arg_embeddings[index, :]
         label = str(label).decode('utf-8', 'ignore').encode('ascii', 'ignore')
+        x_min = min(x, x_min)
+        x_max = max(x, x_max)
+        y_min = min(y, y_min)
+        y_max = max(y, y_max)
         if label.lower() not in our_stopwords:
-            x_min = min(x, x_min)
-            x_max = max(x, x_max)
-            y_min = min(y, y_min)
-            y_max = max(y, y_max)
             pyplot.annotate(label, xy=(x, y), xytext=(0, 0), textcoords='offset points')
             displayed_count += 1
+        else:
+            pyplot.annotate(label, xy=(x, y), xytext=(0, 0), textcoords='offset points',color = 'r')
+
     axes = pyplot.gca()
     axes.set_xlim([x_min - 1, x_max + 1])
     axes.set_ylim([y_min - 1, y_max + 1])
@@ -204,7 +207,7 @@ with graph.as_default(), tf.device('/cpu:0'):
     similarity = tf.matmul(valid_embeddings, tf.transpose(normalized_embeddings))
 
 # todo make this a setting
-num_steps = 3000001
+num_steps = 10001 # 3000001
 
 config = tf.ConfigProto(device_count={'GPU': 0})
 
