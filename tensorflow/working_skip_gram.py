@@ -19,10 +19,11 @@ from sklearn.manifold import TSNE
 
 start_time = time.time()
 our_stopwords = stopwords.words('english')
-partials = ['forc', 'fice', 'ion', 'roject', 'sectio', 'ribution', 'emselves', 'planni', 'ture', 'justifica', 'p~ease',
+partials = ['forc', 'fice', 'ion', 'roject', 'sectio', 'ribution', 'emselves', 'planni', 'ture', 'justifica',
             'tion', 'offi', 'ype', 'executi', 'utive', 'pent', 'secti', 'confi', 'sec', 'offic', 'dit.ional',
             'settleme', 'classi', 'volun:e', 'alsq', 'fication', 'administra', 'ading', 'ribution', 'rity', 'fication',
-            'classi', 'rman', 'confi', 'sbave', 'ioras', 'fie', 'ollice', 'hould', 'udi', 'dtd']
+            'classi', 'rman', 'confi', 'sbave', 'ioras', 'fie', 'ollice', 'hould', 'udi', 'dtd', 'dential', 'lassifi',
+            'contro']
 # our_stopwords += partials
 common_words = ['', 'given', 'kept', 'appear', 'may', 'could', 'make', 'work', 'send', 'keep', 'much', 'per', 'need',
                 'came', 'tell', 'sent', 'told', 'use']
@@ -32,7 +33,7 @@ junk = ['\xe2\x80\xa2'.lower(), 'U\xe2\x80\xa2'.lower(), 'ioTTitten'.lower(), 'O
         'A--The'.lower(), 'memQranda'.lower(), 'non-startling--although', '0tate', 'a.--Io4'.lower(),
         'lJ1iJCLASSIFIED'.lower(), 'JWHaEN'.lower(), 'SEATO'.lower(), 'NCLOSURl'.lower(), 'C\xc2\xb7'.lower(),
         'ltV'.lower(), 'QnLJ'.lower(), 'fT1'.lower(), '\xc2\xb7nothing'.lower(), 'h\'l', 'ROLLllfG'.lower(),
-        'D\xe2\x80\xa2'.lower()]
+        'D\xe2\x80\xa2'.lower(), 't~e', 'p~ease']
 
 
 def maybe_download(arg_filename, expected_bytes):
@@ -258,7 +259,7 @@ with tf.Session(graph=graph, config=config) as session:
     final_embeddings = normalized_embeddings.eval()
 
 # todo make this a setting
-num_points = 500  # was 400
+num_points = 600  # was 400
 
 tsne = TSNE(perplexity=30, n_components=2, init='pca', n_iter=5000)
 two_d_embeddings = tsne.fit_transform(final_embeddings[1:num_points + 1, :])
