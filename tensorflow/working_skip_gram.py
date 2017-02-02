@@ -19,11 +19,20 @@ from sklearn.manifold import TSNE
 
 start_time = time.time()
 our_stopwords = stopwords.words('english')
-partials = ['roject', 'sectio', 'ribution', 'emselves', 'planni', 'ture', 'justifica', 'p~ease', 'tion', 'offi', 'ype']
-our_stopwords += partials
+partials = ['forc', 'fice', 'ion', 'roject', 'sectio', 'ribution', 'emselves', 'planni', 'ture', 'justifica', 'p~ease',
+            'tion', 'offi', 'ype', 'executi', 'utive', 'pent', 'secti', 'confi', 'sec', 'offic', 'dit.ional',
+            'settleme', 'classi', 'volun:e', 'alsq', 'fication', 'administra', 'ading', 'ribution', 'rity', 'fication',
+            'classi', 'rman', 'confi', 'sbave', 'ioras', 'fie', 'ollice', 'hould', 'udi', 'dtd']
+# our_stopwords += partials
 common_words = ['', 'given', 'kept', 'appear', 'may', 'could', 'make', 'work', 'send', 'keep', 'much', 'per', 'need',
-                  'came', 'tell', 'sent', 'told', 'use']
+                'came', 'tell', 'sent', 'told', 'use']
 our_stopwords += common_words
+junk = ['\xe2\x80\xa2'.lower(), 'U\xe2\x80\xa2'.lower(), 'ioTTitten'.lower(), 'OASD(I'.lower(), 'S8c:::Jef'.lower(),
+        'doeument(s', 'everywhere--the', 'B--The'.lower(), 'C\xe2\x80\xa2'.lower(),
+        'A--The'.lower(), 'memQranda'.lower(), 'non-startling--although', '0tate', 'a.--Io4'.lower(),
+        'lJ1iJCLASSIFIED'.lower(), 'JWHaEN'.lower(), 'SEATO'.lower(), 'NCLOSURl'.lower(), 'C\xc2\xb7'.lower(),
+        'ltV'.lower(), 'QnLJ'.lower(), 'fT1'.lower(), '\xc2\xb7nothing'.lower(), 'h\'l', 'ROLLllfG'.lower(),
+        'D\xe2\x80\xa2'.lower()]
 
 
 def maybe_download(arg_filename, expected_bytes):
@@ -117,11 +126,15 @@ def plot(arg_embeddings, arg_labels, arg_file_name):
         x_max = max(x, x_max)
         y_min = min(y, y_min)
         y_max = max(y, y_max)
-        if label.lower() not in our_stopwords:
+        if label.lower() not in our_stopwords and label.lower() not in partials and label.lower() not in junk:
             pyplot.annotate(label, xy=(x, y), xytext=(0, 0), textcoords='offset points')
             displayed_count += 1
-        else:
-            pyplot.annotate(label, xy=(x, y), xytext=(0, 0), textcoords='offset points',color = 'r')
+        elif label.lower() in our_stopwords:
+            pyplot.annotate(label, xy=(x, y), xytext=(0, 0), textcoords='offset points', color='r')
+        elif label.lower() in partials:
+            pyplot.annotate(label, xy=(x, y), xytext=(0, 0), textcoords='offset points', color='c')
+        elif label.lower() in junk:
+            pyplot.annotate(label, xy=(x, y), xytext=(0, 0), textcoords='offset points', color='y')
 
     axes = pyplot.gca()
     axes.set_xlim([x_min - 1, x_max + 1])
@@ -129,6 +142,7 @@ def plot(arg_embeddings, arg_labels, arg_file_name):
     pyplot.savefig(arg_file_name + '.png', bbox_inches='tight', pad_inches=0)
     pyplot.savefig(arg_file_name + '.pdf')
     logging.info('displaying %d labels' % displayed_count)
+    logging.info('labels: %s' % arg_labels)
     pyplot.show()
 
 
@@ -207,7 +221,7 @@ with graph.as_default(), tf.device('/cpu:0'):
     similarity = tf.matmul(valid_embeddings, tf.transpose(normalized_embeddings))
 
 # todo make this a setting
-num_steps = 10001 # 3000001
+num_steps = 6000001
 
 config = tf.ConfigProto(device_count={'GPU': 0})
 
