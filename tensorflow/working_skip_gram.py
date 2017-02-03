@@ -23,7 +23,7 @@ partials = ['forc', 'fice', 'ion', 'roject', 'sectio', 'ribution', 'emselves', '
             'tion', 'offi', 'ype', 'executi', 'utive', 'pent', 'secti', 'confi', 'sec', 'offic', 'dit.ional',
             'settleme', 'classi', 'volun:e', 'alsq', 'fication', 'administra', 'ading', 'ribution', 'rity', 'fication',
             'classi', 'rman', 'confi', 'sbave', 'ioras', 'fie', 'ollice', 'hould', 'udi', 'dtd', 'dential', 'lassifi',
-            'contro']
+            'contro', 'uti', 'exec']
 # our_stopwords += partials
 common_words = ['', 'given', 'kept', 'appear', 'may', 'could', 'make', 'work', 'send', 'keep', 'much', 'per', 'need',
                 'came', 'tell', 'sent', 'told', 'use']
@@ -127,15 +127,20 @@ def plot(arg_embeddings, arg_labels, arg_file_name):
         x_max = max(x, x_max)
         y_min = min(y, y_min)
         y_max = max(y, y_max)
-        if label.lower() not in our_stopwords and label.lower() not in partials and label.lower() not in junk:
-            pyplot.annotate(label, xy=(x, y), xytext=(0, 0), textcoords='offset points')
-            displayed_count += 1
-        elif label.lower() in our_stopwords:
+        if label.lower() in our_stopwords:
             pyplot.annotate(label, xy=(x, y), xytext=(0, 0), textcoords='offset points', color='r')
         elif label.lower() in partials:
             pyplot.annotate(label, xy=(x, y), xytext=(0, 0), textcoords='offset points', color='c')
         elif label.lower() in junk:
-            pyplot.annotate(label, xy=(x, y), xytext=(0, 0), textcoords='offset points', color='y')
+            pyplot.annotate(label, xy=(x, y), xytext=(0, 0), textcoords='offset points', color='w')
+        else:
+            # green for things capitalized
+            if label[0].isupper():
+                pyplot.annotate(label, xy=(x, y), xytext=(0, 0), textcoords='offset points', color='g')
+            else:
+                # black for everything else
+                pyplot.annotate(label, xy=(x, y), xytext=(0, 0), textcoords='offset points', color='k')
+            displayed_count += 1
 
     axes = pyplot.gca()
     axes.set_xlim([x_min - 1, x_max + 1])
