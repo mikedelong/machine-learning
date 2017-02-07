@@ -132,7 +132,14 @@ def plot(arg_embeddings, arg_labels, arg_file_name):
         elif label.lower() in partials:
             pyplot.annotate(label, xy=(x, y), xytext=(0, 0), textcoords='offset points', color='c')
         elif label.lower() in junk:
-            pyplot.annotate(label, xy=(x, y), xytext=(0, 0), textcoords='offset points', color='w')
+            pyplot.annotate(label, xy=(x, y), xytext=(0, 0), textcoords='offset points', color='y')
+        # todo consolidate these three cases into one conditional
+        elif label.replace('-', '').isdigit():
+            pyplot.annotate(label, xy=(x, y), xytext=(0, 0), textcoords='offset points', color='m')
+        elif label.replace('.', '').isdigit():
+            pyplot.annotate(label, xy=(x, y), xytext=(0, 0), textcoords='offset points', color='m')
+        elif label.replace('/', '').isdigit():
+            pyplot.annotate(label, xy=(x, y), xytext=(0, 0), textcoords='offset points', color='m')
         else:
             # green for things capitalized
             if label[0].isupper():
@@ -227,7 +234,7 @@ with graph.as_default(), tf.device('/cpu:0'):
     similarity = tf.matmul(valid_embeddings, tf.transpose(normalized_embeddings))
 
 # todo make this a setting
-num_steps = 6000001
+num_steps = 14001
 
 config = tf.ConfigProto(device_count={'GPU': 0})
 
