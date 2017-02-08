@@ -234,7 +234,7 @@ with graph.as_default(), tf.device('/cpu:0'):
     similarity = tf.matmul(valid_embeddings, tf.transpose(normalized_embeddings))
 
 # todo make this a setting
-num_steps = 14001
+num_steps = 15000001
 
 config = tf.ConfigProto(device_count={'GPU': 0})
 
