@@ -48,7 +48,7 @@ for file_count in range(0, 10000):
             new_image.paste(im, (x_offset, 0))
             x_offset += im.size[0]
 
-        output_full_filename = output_folder + output_filename + '.png'
+        output_full_filename = output_folder + '_' + output_filename + '.png'
         new_image.save(output_full_filename)
         logging.debug('%d %s' % (file_count, output_full_filename))
     except IOError as io_error:
