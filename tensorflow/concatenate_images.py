@@ -2,7 +2,10 @@ import logging
 import os
 import random
 import shutil
+import time
 from PIL import Image
+
+start_time = time.time()
 
 logging.basicConfig(format='%(asctime)s : %(levelname)s :: %(message)s', level=logging.DEBUG)
 
@@ -50,8 +53,14 @@ for file_count in range(0, 10000):
             new_image.paste(im, (x_offset, 0))
             x_offset += im.size[0]
 
-        output_full_filename = output_folder  + output_filename + '.png'
+        output_full_filename = output_folder + output_filename + '.png'
         new_image.save(output_full_filename)
         logging.debug('%d %s' % (file_count, output_full_filename))
     except IOError as io_error:
         logging.warn(io_error)
+
+# to get a reasonably stable estimate of elapsed time we want to stop the clock before we plot.
+finish_time = time.time()
+elapsed_hours, elapsed_remainder = divmod(finish_time - start_time, 3600)
+elapsed_minutes, elapsed_seconds = divmod(elapsed_remainder, 60)
+logging.info("Elapsed time: {:0>2}:{:0>2}:{:05.2f}".format(int(elapsed_hours), int(elapsed_minutes), elapsed_seconds))
