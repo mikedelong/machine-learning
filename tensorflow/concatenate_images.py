@@ -1,3 +1,4 @@
+import json
 import logging
 import os
 import random
@@ -9,11 +10,16 @@ start_time = time.time()
 
 logging.basicConfig(format='%(asctime)s : %(levelname)s :: %(message)s', level=logging.DEBUG)
 
-random_seed = 1
+with open('test-data-settings.json') as data_file:
+    data = json.load(data_file)
+    logging.debug(data)
+    blank_file = data['blank_file']
+    files_to_generate = data['files_to_generate']
+    input_folder = data['input_folder']
+    output_folder = data['output_folder']
+    random_seed = data['random_seed']
+
 random.seed(random_seed)
-
-output_folder = './concatenate_output/'
-
 if not os.path.exists(output_folder):
     os.makedirs(output_folder)
 else:
@@ -21,8 +27,8 @@ else:
     os.makedirs(output_folder)
 
 count = 0
-root = './notMNIST_small/'
-for file_count in range(0, 10000):
+
+for file_count in range(0, files_to_generate):
     try:
         output_filename = str(file_count) + '_'
         current = random.randint(0, 99999)
@@ -30,10 +36,10 @@ for file_count in range(0, 10000):
         blanks_needed = 5 - len(t0)
         sources = list()
         for blanks in range(0, blanks_needed):
-            sources.append('./blank.png')
+            sources.append(blank_file)
         for c0 in t0:
             t1 = chr(c0 + ord('A'))
-            t2 = root + t1
+            t2 = input_folder + t1
             t3 = random.choice(os.listdir(t2 + '/'))
             output_filename += t1
             file_name = t2 + '/' + t3
@@ -59,7 +65,6 @@ for file_count in range(0, 10000):
     except IOError as io_error:
         logging.warn(io_error)
 
-# to get a reasonably stable estimate of elapsed time we want to stop the clock before we plot.
 finish_time = time.time()
 elapsed_hours, elapsed_remainder = divmod(finish_time - start_time, 3600)
 elapsed_minutes, elapsed_seconds = divmod(elapsed_remainder, 60)
