@@ -5,16 +5,22 @@ from scipy import ndimage
 
 # todo fix the image size; our images aren't square
 image_size = 28  # Pixel width and height.
+image_height = 28
+image_width = 5 * 28
 pixel_depth = 255.0  # Number of levels per pixel.
 
 
 def load_letter(folder, min_num_images):
     """Load the data for a single letter label."""
     image_files = os.listdir(folder)
-    dataset = numpy.ndarray(shape=(len(image_files), image_size, image_size), dtype=numpy.float32)
+    # dataset = numpy.ndarray(shape=(len(image_files), image_size, image_size), dtype=numpy.float32)
+    dataset = numpy.ndarray(shape=(len(image_files), image_height, image_width), dtype=numpy.float32)
     print(folder)
+    correct_values  = []
     num_images = 0
     for image in image_files:
+        correct_value = image.split('.')[0].split('_')[1]
+        correct_values.append(correct_value)
         image_file = os.path.join(folder, image)
         try:
             image_data = (ndimage.imread(image_file).astype(float) -
@@ -34,7 +40,7 @@ def load_letter(folder, min_num_images):
     print('Full dataset tensor:', dataset.shape)
     print('Mean:', numpy.mean(dataset))
     print('Standard deviation:', numpy.std(dataset))
-    return dataset
+    return dataset, correct_values
 
 
 def maybe_pickle(data_folders, min_num_images_per_class, force=False):
@@ -55,3 +61,8 @@ def maybe_pickle(data_folders, min_num_images_per_class, force=False):
                 print('Unable to save data to', set_filename, ':', e)
 
     return dataset_names
+
+
+train_datasets = maybe_pickle(['concatenate_output'], 45)
+pass
+# test_datasets = maybe_pickle(test_folders, 1800)
