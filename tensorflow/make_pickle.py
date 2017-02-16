@@ -23,10 +23,10 @@ def load_letter(folder, min_num_images):
         correct_values.append(correct_value)
         image_file = os.path.join(folder, image)
         try:
-            image_data = (ndimage.imread(image_file).astype(float) -
-                          pixel_depth / 2) / pixel_depth
-            if image_data.shape != (image_size, image_size):
-                raise Exception('Unexpected image shape: %s' % str(image_data.shape))
+            image_data = (ndimage.imread(image_file).astype(float) - pixel_depth / 2) / pixel_depth
+            # if image_data.shape != (image_size, image_size):
+            if image_data.shape != (image_height, image_width):
+                    raise Exception('Unexpected image shape: %s' % str(image_data.shape))
             dataset[num_images, :, :] = image_data
             num_images = num_images + 1
         except IOError as e:
