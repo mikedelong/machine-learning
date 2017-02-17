@@ -3,14 +3,6 @@ Assignments for Udacity Deep Learning class with TensorFlow
 
 Course information can be found at https://www.udacity.com/course/deep-learning--ud730
 
-Running the Docker container from the Google Cloud repository
--------------------------------------------------------------
-
-    docker run -p 8888:8888 --name tensorflow-udacity -it gcr.io/tensorflow/udacity-assignments:0.6.0
-
-Note that if you ever exit the container, you can return to it using:
-
-    docker start -ai tensorflow-udacity
 
 Accessing the Notebooks
 -----------------------
