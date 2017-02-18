@@ -60,8 +60,8 @@ def load_letter(folder, min_num_images):
     correct_values  = []
     num_images = 0
     for image in image_files:
-        correct_value = image.split('.')[0].split('_')[1]
-        correct_values.append(correct_value)
+        # correct_value = image.split('.')[0].split('_')[1]
+        # correct_values.append(correct_value)
         image_file = os.path.join(folder, image)
         try:
             image_data = (ndimage.imread(image_file).astype(float) - pixel_depth / 2) / pixel_depth
@@ -104,7 +104,8 @@ def maybe_pickle(data_folders, min_num_images_per_class, force=False):
     return dataset_names
 
 
-train_filename = maybe_download('notMNIST_large.tar.gz', 247336696)
+train_filename = maybe_download('notMNIST_small.tar.gz', 8458043)
+# train_filename = maybe_download('notMNIST_large.tar.gz', 247336696)
 train_folders = maybe_extract(train_filename)
 
 train_datasets = maybe_pickle(train_folders, 45)
