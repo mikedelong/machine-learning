@@ -52,7 +52,7 @@ for file_count in range(0, files_to_generate):
         total_width = sum(widths)
         max_height = max(heights)
 
-        new_image = Image.new('RGB', (total_width, max_height))
+        new_image = Image.new('L', (total_width, max_height)) # mode was 'RGB'
 
         x_offset = 0
         for im in images:
