@@ -36,20 +36,6 @@ def maybe_extract(filename, force=False):
     print(data_folders)
     return data_folders
 
-def maybe_download(filename, expected_bytes, force=False):
-  """Download a file if not present, and make sure it's the right size."""
-  if force or not os.path.exists(filename):
-    print('Attempting to download:', filename)
-    filename, _ = urlretrieve(url + filename, filename, reporthook=download_progress_hook)
-    print('\nDownload Complete!')
-  statinfo = os.stat(filename)
-  if statinfo.st_size == expected_bytes:
-    print('Found and verified', filename)
-  else:
-    raise Exception(
-      'Failed to verify ' + filename + '. Can you get to it with a browser?')
-  return filename
-
 
 def load_letter(folder, min_num_images):
     """Load the data for a single letter label."""
@@ -57,7 +43,7 @@ def load_letter(folder, min_num_images):
     # dataset = numpy.ndarray(shape=(len(image_files), image_size, image_size), dtype=numpy.float32)
     dataset = numpy.ndarray(shape=(len(image_files), image_height, image_width), dtype=numpy.float32)
     print(folder)
-    correct_values  = []
+    correct_values = []
     num_images = 0
     for image in image_files:
         # correct_value = image.split('.')[0].split('_')[1]
@@ -67,7 +53,7 @@ def load_letter(folder, min_num_images):
             image_data = (ndimage.imread(image_file).astype(float) - pixel_depth / 2) / pixel_depth
             # if image_data.shape != (image_size, image_size):
             if image_data.shape != (image_height, image_width):
-                    raise Exception('Unexpected image shape: %s' % str(image_data.shape))
+                raise Exception('Unexpected image shape: %s' % str(image_data.shape))
             dataset[num_images, :, :] = image_data
             num_images = num_images + 1
         except IOError as e:
@@ -104,8 +90,8 @@ def maybe_pickle(data_folders, min_num_images_per_class, force=False):
     return dataset_names
 
 
-train_filename = maybe_download('notMNIST_small.tar.gz', 8458043)
-# train_filename = maybe_download('notMNIST_large.tar.gz', 247336696)
+train_filename = 'notMNIST_large.tar.gz'
+train_filename = 'notMNIST_small.tar.gz'
 train_folders = maybe_extract(train_filename)
 
 train_datasets = maybe_pickle(train_folders, 45)
