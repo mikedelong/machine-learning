@@ -13,7 +13,6 @@ pixel_depth = 255.0  # Number of levels per pixel.
 def load_letter(folder, min_num_images):
     """Load the data for a single letter label."""
     image_files = os.listdir(folder)
-    # dataset = numpy.ndarray(shape=(len(image_files), image_size, image_size), dtype=numpy.float32)
     dataset = numpy.ndarray(shape=(len(image_files), image_height, image_width), dtype=numpy.float32)
     print(folder)
     correct_values  = []
@@ -24,7 +23,6 @@ def load_letter(folder, min_num_images):
         image_file = os.path.join(folder, image)
         try:
             image_data = (ndimage.imread(image_file).astype(float) - pixel_depth / 2) / pixel_depth
-            # if image_data.shape != (image_size, image_size):
             if image_data.shape != (image_height, image_width):
                     raise Exception('Unexpected image shape: %s' % str(image_data.shape))
             dataset[num_images, :, :] = image_data
@@ -32,6 +30,7 @@ def load_letter(folder, min_num_images):
         except IOError as e:
             print('Could not read:', image_file, ':', e, '- it\'s ok, skipping.')
 
+    print(correct_values)
     dataset = dataset[0:num_images, :, :]
     if num_images < min_num_images:
         raise Exception('Many fewer images than expected: %d < %d' %
