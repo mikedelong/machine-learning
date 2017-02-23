@@ -77,11 +77,11 @@ def make_arrays(nb_rows, image_height, image_width):
 
 
 def merge_datasets(pickle_files, train_size, arg_image_height, arg_image_width, valid_size=0):
-    num_classes = len(pickle_files)
+    # num_classes = len(pickle_files)
     valid_dataset, valid_labels = make_arrays(valid_size, arg_image_height, arg_image_width)
     train_dataset, train_labels = make_arrays(train_size, arg_image_height, arg_image_width)
-    vsize_per_class = valid_size // num_classes
-    tsize_per_class = train_size // num_classes
+    vsize_per_class = valid_size # // num_classes
+    tsize_per_class = train_size # // num_classes
 
     start_v, start_t = 0, 0
     end_v, end_t = vsize_per_class, tsize_per_class
@@ -93,8 +93,6 @@ def merge_datasets(pickle_files, train_size, arg_image_height, arg_image_width, 
                 all_data = list(zip(letter_set, correct_values))
                 random.shuffle(all_data)
                 letter_set, correct_values = zip(*all_data)
-                # let's shuffle the letters to have random validation and training set
-                # numpy.random.shuffle(letter_set)
 
                 if valid_dataset is not None:
                     valid_letter = letter_set[:vsize_per_class, :, :]
