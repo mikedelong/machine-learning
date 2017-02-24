@@ -17,7 +17,7 @@ def load_letter(folder, min_num_images):
     image_files = os.listdir(folder)
     dataset = numpy.ndarray(shape=(len(image_files), image_height, image_width), dtype=numpy.float32)
     print(folder)
-    correct_values  = []
+    correct_values = []
     num_images = 0
     for image in image_files:
         correct_value = image.split('.')[0].split('_')[1]
@@ -26,7 +26,7 @@ def load_letter(folder, min_num_images):
         try:
             image_data = (ndimage.imread(image_file).astype(float) - pixel_depth / 2) / pixel_depth
             if image_data.shape != (image_height, image_width):
-                    raise Exception('Unexpected image shape: %s' % str(image_data.shape))
+                raise Exception('Unexpected image shape: %s' % str(image_data.shape))
             dataset[num_images, :, :] = image_data
             num_images = num_images + 1
         except IOError as e:
@@ -67,6 +67,7 @@ def maybe_pickle(data_folders, min_num_images_per_class, force=False):
 
 train_datasets = maybe_pickle(['concatenate_output'], 1800)
 
+
 def make_arrays(nb_rows, image_height, image_width):
     if nb_rows:
         dataset = numpy.ndarray((nb_rows, image_height, image_width), dtype=numpy.float32)
@@ -80,8 +81,9 @@ def merge_datasets(pickle_files, train_size, arg_image_height, arg_image_width, 
     # num_classes = len(pickle_files)
     valid_dataset, valid_labels = make_arrays(valid_size, arg_image_height, arg_image_width)
     train_dataset, train_labels = make_arrays(train_size, arg_image_height, arg_image_width)
-    vsize_per_class = valid_size # // num_classes
-    tsize_per_class = train_size # // num_classes
+    vsize_per_class = valid_size  # // num_classes
+    print ('vsize per class: ' + str(vsize_per_class))
+    tsize_per_class = train_size  # // num_classes
 
     start_v, start_t = 0, 0
     end_v, end_t = vsize_per_class, tsize_per_class
@@ -95,7 +97,12 @@ def merge_datasets(pickle_files, train_size, arg_image_height, arg_image_width, 
                 letter_set, correct_values = zip(*all_data)
 
                 if valid_dataset is not None:
-                    valid_letter = letter_set[:vsize_per_class, :, :]
+                    try :
+                        valid_letter = letter_set[:vsize_per_class, :, :]
+                    except TypeError as typeError:
+                        print ( typeError)
+                        print (vsize_per_class)
+                        print (letter_set[:vsize_per_class, :, :])
                     valid_dataset[start_v:end_v, :, :] = valid_letter
                     valid_labels[start_v:end_v] = label
                     start_v += vsize_per_class
@@ -114,14 +121,15 @@ def merge_datasets(pickle_files, train_size, arg_image_height, arg_image_width, 
 
 
 total_data = 100000
-valid_size =  total_data  / 20
+valid_size = total_data / 20
 test_size = total_data / 20
 train_size = total_data - valid_size - test_size
 # train_size = 200000
 # valid_size = 10000
 # test_size = 10000
 
-valid_dataset, valid_labels, train_dataset, train_labels = merge_datasets(train_datasets, train_size, image_height, image_width)
+valid_dataset, valid_labels, train_dataset, train_labels = merge_datasets(train_datasets, train_size, image_height,
+                                                                          image_width, valid_size)
 # _, _, test_dataset, test_labels = merge_datasets(test_datasets, test_size)
 
 print('Training:', train_dataset.shape, train_labels.shape)
