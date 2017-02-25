@@ -97,19 +97,18 @@ def merge_datasets(pickle_files, train_size, arg_image_height, arg_image_width, 
                 letter_set, correct_values = zip(*all_data)
 
                 if valid_dataset is not None:
-                    try :
-                        valid_letter = letter_set[:vsize_per_class, :, :]
-                    except TypeError as typeError:
-                        print ( typeError)
-                        print (vsize_per_class)
-                        print (letter_set[:vsize_per_class, :, :])
-                    valid_dataset[start_v:end_v, :, :] = valid_letter
+                    # valid_letter = letter_set[:vsize_per_class, :, :]
+                    valid_letter = letter_set[:vsize_per_class]
+                    # valid_dataset[start_v:end_v, :, :] = valid_letter
+                    valid_dataset[start_v:end_v] = valid_letter
                     valid_labels[start_v:end_v] = label
                     start_v += vsize_per_class
                     end_v += vsize_per_class
 
-                train_letter = letter_set[vsize_per_class:end_l, :, :]
-                train_dataset[start_t:end_t, :, :] = train_letter
+                # train_letter = letter_set[vsize_per_class:end_l, :, :]
+                train_letter = letter_set[vsize_per_class:end_l]
+                # train_dataset[start_t:end_t, :, :] = train_letter
+                train_dataset[start_t:end_t] = train_letter
                 train_labels[start_t:end_t] = label
                 start_t += tsize_per_class
                 end_t += tsize_per_class
