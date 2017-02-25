@@ -4,6 +4,10 @@ import random
 from scipy import ndimage
 
 import numpy
+import logging
+
+
+logging.basicConfig(format='%(asctime)s : %(levelname)s :: %(message)s', level=logging.DEBUG)
 
 # todo fix the image size; our images aren't square
 image_size = 28  # Pixel width and height.
@@ -16,7 +20,7 @@ def load_letter(folder, min_num_images):
     """Load the data for a single letter label."""
     image_files = os.listdir(folder)
     dataset = numpy.ndarray(shape=(len(image_files), image_height, image_width), dtype=numpy.float32)
-    print(folder)
+    logging.debug(folder)
     correct_values = []
     num_images = 0
     for image in image_files:
@@ -38,9 +42,9 @@ def load_letter(folder, min_num_images):
         raise Exception('Many fewer images than expected: %d < %d' %
                         (num_images, min_num_images))
 
-    print('Full dataset tensor:', dataset.shape)
-    print('Mean:', numpy.mean(dataset))
-    print('Standard deviation:', numpy.std(dataset))
+    logging.debug('Full dataset tensor:' %  dataset.shape)
+    logging.debug('Mean:' % numpy.mean(dataset))
+    logging.debug('Standard deviation:' % numpy.std(dataset))
     return dataset, correct_values
 
 
@@ -51,16 +55,16 @@ def maybe_pickle(data_folders, min_num_images_per_class, force=False):
         dataset_names.append(set_filename)
         if os.path.exists(set_filename) and not force:
             # You may override by setting force=True.
-            print('%s already present - Skipping pickling.' % set_filename)
+            logging.debug('%s already present - Skipping pickling.' % set_filename)
         else:
-            print('Pickling %s.' % set_filename)
+            logging.debug('Pickling %s.' % set_filename)
             dataset, correct_values = load_letter(folder, min_num_images_per_class)
             try:
                 with open(set_filename, 'wb') as f:
                     pickle.dump([dataset, correct_values], f, pickle.HIGHEST_PROTOCOL)
 
             except Exception as e:
-                print('Unable to save data to', set_filename, ':', e)
+                logging.warn('Unable to save data to', set_filename, ':', e)
 
     return dataset_names
 
@@ -82,7 +86,7 @@ def merge_datasets(pickle_files, train_size, arg_image_height, arg_image_width, 
     valid_dataset, valid_labels = make_arrays(valid_size, arg_image_height, arg_image_width)
     train_dataset, train_labels = make_arrays(train_size, arg_image_height, arg_image_width)
     vsize_per_class = valid_size  # // num_classes
-    print ('vsize per class: ' + str(vsize_per_class))
+    logging.debug('vsize per class: ' + str(vsize_per_class))
     tsize_per_class = train_size  # // num_classes
 
     start_v, start_t = 0, 0
@@ -113,7 +117,7 @@ def merge_datasets(pickle_files, train_size, arg_image_height, arg_image_width, 
                 start_t += tsize_per_class
                 end_t += tsize_per_class
         except Exception as e:
-            print('Unable to process data from', pickle_file, ':', e)
+            logging.warn('Unable to process data from %s because of error %s' % (pickle_file, e))
             raise
 
     return valid_dataset, valid_labels, train_dataset, train_labels
@@ -131,6 +135,6 @@ valid_dataset, valid_labels, train_dataset, train_labels = merge_datasets(train_
                                                                           image_width, valid_size)
 # _, _, test_dataset, test_labels = merge_datasets(test_datasets, test_size)
 
-print('Training:', train_dataset.shape, train_labels.shape)
+logging.debug('Training: %s %s' % (train_dataset.shape, train_labels.shape))
 # print('Validation:', valid_dataset.shape, valid_labels.shape)
 # print('Testing:', test_dataset.shape, test_labels.shape)
