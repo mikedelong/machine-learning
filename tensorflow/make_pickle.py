@@ -1,11 +1,10 @@
+import logging
 import os
 import pickle
 import random
 from scipy import ndimage
 
 import numpy
-import logging
-
 
 logging.basicConfig(format='%(asctime)s : %(levelname)s :: %(message)s', level=logging.DEBUG)
 
@@ -42,7 +41,7 @@ def load_letter(folder, min_num_images):
         raise Exception('Many fewer images than expected: %d < %d' %
                         (num_images, min_num_images))
 
-    logging.debug('Full dataset tensor:' %  dataset.shape)
+    logging.debug('Full dataset tensor:' % dataset.shape)
     logging.debug('Mean:' % numpy.mean(dataset))
     logging.debug('Standard deviation:' % numpy.std(dataset))
     return dataset, correct_values
@@ -69,7 +68,7 @@ def maybe_pickle(data_folders, min_num_images_per_class, force=False):
     return dataset_names
 
 
-train_datasets = maybe_pickle(['concatenate_output'], 1800)
+pickle_file_name = maybe_pickle(['concatenate_output'], 1800)
 
 
 def make_arrays(nb_rows, image_height, image_width):
@@ -81,60 +80,38 @@ def make_arrays(nb_rows, image_height, image_width):
     return dataset, labels
 
 
-def merge_datasets(pickle_files, train_size, arg_image_height, arg_image_width, valid_size=0):
-    # num_classes = len(pickle_files)
-    valid_dataset, valid_labels = make_arrays(valid_size, arg_image_height, arg_image_width)
-    train_dataset, train_labels = make_arrays(train_size, arg_image_height, arg_image_width)
-    vsize_per_class = valid_size  # // num_classes
-    logging.debug('vsize per class: ' + str(vsize_per_class))
-    tsize_per_class = train_size  # // num_classes
-
-    start_v, start_t = 0, 0
-    end_v, end_t = vsize_per_class, tsize_per_class
-    end_l = vsize_per_class + tsize_per_class
-    for label, pickle_file in enumerate(pickle_files):
-        try:
-            with open(pickle_file, 'rb') as f:
-                letter_set, correct_values = pickle.load(f)
-                all_data = list(zip(letter_set, correct_values))
-                random.shuffle(all_data)
-                letter_set, correct_values = zip(*all_data)
-
-                if valid_dataset is not None:
-                    # valid_letter = letter_set[:vsize_per_class, :, :]
-                    valid_letter = letter_set[:vsize_per_class]
-                    # valid_dataset[start_v:end_v, :, :] = valid_letter
-                    valid_dataset[start_v:end_v] = valid_letter
-                    valid_labels[start_v:end_v] = label
-                    start_v += vsize_per_class
-                    end_v += vsize_per_class
-
-                # train_letter = letter_set[vsize_per_class:end_l, :, :]
-                train_letter = letter_set[vsize_per_class:end_l]
-                # train_dataset[start_t:end_t, :, :] = train_letter
-                train_dataset[start_t:end_t] = train_letter
-                train_labels[start_t:end_t] = label
-                start_t += tsize_per_class
-                end_t += tsize_per_class
-        except Exception as e:
-            logging.warn('Unable to process data from %s because of error %s' % (pickle_file, e))
-            raise
-
-    return valid_dataset, valid_labels, train_dataset, train_labels
+def split_data(arg_pickle_file_name, arg_train_size, arg_validation_size, arg_test_size):
+    logging.debug(arg_pickle_file_name)
+    with open(arg_pickle_file_name, 'rb') as f:
+        letter_set, correct_values = pickle.load(f)
+        all_data = list(zip(letter_set, correct_values))
+        random.shuffle(all_data)
+        data, labels = zip(*all_data)
+    start_train = 0
+    end_train = start_train + arg_train_size
+    start_validation = arg_train_size
+    end_validation = start_validation + arg_validation_size
+    start_test = arg_train_size + arg_validation_size
+    end_test = start_test + arg_test_size
+    return \
+        [each[0] for each in data[start_train:end_train]], \
+        [each[1] for each in data[start_train:end_train]], \
+        [each[0] for each in data[start_validation:end_validation]], \
+        [each[1] for each in data[start_validation:end_validation]], \
+        [each[0] for each in data[start_test:end_test]], \
+        [each[1] for each in data[start_test:end_test]]
 
 
-total_data = 100000
-valid_size = total_data / 20
+with open('concatenate_output.pickle', 'rb') as f:
+    t, _ = pickle.load(f)
+    total_data = len(t)
+validation_size = total_data / 20
 test_size = total_data / 20
-train_size = total_data - valid_size - test_size
-# train_size = 200000
-# valid_size = 10000
-# test_size = 10000
+train_size = total_data - validation_size - test_size
 
-valid_dataset, valid_labels, train_dataset, train_labels = merge_datasets(train_datasets, train_size, image_height,
-                                                                          image_width, valid_size)
-# _, _, test_dataset, test_labels = merge_datasets(test_datasets, test_size)
+train_data, train_labels, validation_data, validation_labels, test_data, test_labels = \
+    split_data(pickle_file_name[0], train_size, validation_size, test_size)
 
-logging.debug('Training: %s %s' % (train_dataset.shape, train_labels.shape))
-# print('Validation:', valid_dataset.shape, valid_labels.shape)
-# print('Testing:', test_dataset.shape, test_labels.shape)
+logging.debug('Training: %d %d' % (len(train_data), len(train_labels)))
+logging.debug('Validation: %d %d' % (len(validation_data), len(validation_labels)))
+logging.debug('Testing: %d %d' % (len(test_data), len(test_labels)))
