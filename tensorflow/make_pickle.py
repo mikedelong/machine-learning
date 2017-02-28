@@ -31,7 +31,7 @@ def load_letter(folder, min_num_images):
             if image_data.shape != (image_height, image_width):
                 raise Exception('Unexpected image shape: %s' % str(image_data.shape))
             dataset[num_images, :, :] = image_data
-            num_images = num_images + 1
+            num_images += 1
         except IOError as e:
             print('Could not read:', image_file, ':', e, '- it\'s ok, skipping.')
 
@@ -68,12 +68,9 @@ def maybe_pickle(data_folders, min_num_images_per_class, force=False):
     return dataset_names
 
 
-pickle_file_name = maybe_pickle(['concatenate_output'], 1800)
-
-
-def make_arrays(nb_rows, image_height, image_width):
+def make_arrays(nb_rows, arg_image_height, arg_image_width):
     if nb_rows:
-        dataset = numpy.ndarray((nb_rows, image_height, image_width), dtype=numpy.float32)
+        dataset = numpy.ndarray((nb_rows, arg_image_height, arg_image_width), dtype=numpy.float32)
         labels = numpy.ndarray(nb_rows, dtype=numpy.int32)
     else:
         dataset, labels = None, None
@@ -102,8 +99,10 @@ def split_data(arg_pickle_file_name, arg_train_size, arg_validation_size, arg_te
         [each[1] for each in data[start_test:end_test]]
 
 
-with open('concatenate_output.pickle', 'rb') as f:
-    t, _ = pickle.load(f)
+pickle_file_name = maybe_pickle(['concatenate_output'], 1800)
+
+with open('concatenate_output.pickle', 'rb') as file_pointer:
+    t, _ = pickle.load(file_pointer)
     total_data = len(t)
 validation_size = total_data / 20
 test_size = total_data / 20
