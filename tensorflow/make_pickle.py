@@ -114,10 +114,13 @@ def split_data(arg_pickle_file_name, arg_train_size, arg_validation_size, arg_te
            result_test_data, result_test_correct
 
 
-def reformat(dataset, labels, arg_num_labels):
-    dataset = dataset.reshape((-1, image_size * image_size)).astype(numpy.float32)
+def reformat(dataset, arg_labels, arg_num_labels, arg_image_height, arg_image_width):
+    dataset = dataset.reshape((-1, arg_image_height * arg_image_width)).astype(numpy.float32)
     # Map 0 to [1.0, 0.0, 0.0 ...], 1 to [0.0, 1.0, 0.0 ...]
-    labels = (numpy.arange(arg_num_labels) == labels[:, None]).astype(numpy.float32)
+    # t0 = labels[:]
+    labels = (numpy.arange(arg_num_labels) == arg_labels[:]).astype(numpy.float32)
+
+    # labels = (numpy.arange(arg_num_labels) == labels[:, None]).astype(numpy.float32)
     return dataset, labels
 
 
@@ -137,9 +140,9 @@ logging.debug('Training: %d %d' % (len(train_data), len(train_labels)))
 logging.debug('Validation: %d %d' % (len(validation_data), len(validation_labels)))
 logging.debug('Testing: %d %d' % (len(test_data), len(test_labels)))
 
-train_dataset, train_labels = reformat(train_data, train_labels, 10)
-valid_dataset, valid_labels = reformat(validation_data, validation_labels, 10)
-test_dataset, test_labels = reformat(test_data, test_labels, 10)
+train_dataset, train_labels = reformat(train_data, train_labels, 10, image_height, image_width)
+valid_dataset, valid_labels = reformat(validation_data, validation_labels, 10, image_height, image_width)
+test_dataset, test_labels = reformat(test_data, test_labels, 10, image_height, image_width)
 print('Training set', train_dataset.shape, train_labels.shape)
 print('Validation set', valid_dataset.shape, valid_labels.shape)
 print('Test set', test_dataset.shape, test_labels.shape)
