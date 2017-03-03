@@ -94,19 +94,16 @@ def split_data(arg_pickle_file_name, arg_train_size, arg_validation_size, arg_te
     end_test = start_test + arg_test_size
     result_train_data = numpy.ndarray((end_train - start_train + 1, arg_image_height, arg_image_width),
                                       dtype=numpy.float32)
-    # result_train_correct = numpy.array(end_train - start_train + 1, dtype=numpy.int)
     result_train_data[0:end_train - start_train] = letter_set[start_train:end_train]
     result_train_correct = correct_values[start_train:end_train]
 
     result_validation_data = numpy.ndarray((end_validation - start_validation + 1, arg_image_height, arg_image_width),
                                            dtype=numpy.float32)
-    # result_validation_correct = numpy.array(end_validation - start_validation + 1, dtype=numpy.int)
     result_validation_data[0:end_validation - start_validation] = letter_set[start_validation:end_validation]
     result_validation_correct = correct_values[start_validation:end_validation]
 
     result_test_data = numpy.ndarray((end_test - start_test + 1, arg_image_height, arg_image_width),
                                      dtype=numpy.float32)
-    # result_test_correct = numpy.array(end_test - start_test + 1, dtype=numpy.int)
     result_test_data[0:end_test - start_test] = letter_set[start_test:end_test]
     result_test_correct = correct_values[start_test:end_test]
 
