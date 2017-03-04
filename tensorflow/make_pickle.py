@@ -110,15 +110,28 @@ def split_data(arg_pickle_file_name, arg_train_size, arg_validation_size, arg_te
     return result_train_data, result_train_correct, result_validation_data, result_validation_correct, \
            result_test_data, result_test_correct
 
+def special_ord(arg, arg_index):
+    char = arg[arg_index]
+    result  = ord(char)
+    result = result if result != 32 else 64
+    result -= 64
+    return result
+
+vector_special_ord = numpy.vectorize(special_ord)
 
 def reformat(dataset, arg_labels, arg_num_labels, arg_image_height, arg_image_width):
     dataset = dataset.reshape((-1, arg_image_height * arg_image_width)).astype(numpy.float32)
     # Map 0 to [1.0, 0.0, 0.0 ...], 1 to [0.0, 1.0, 0.0 ...]
     # t0 = labels[:]
-    labels = (numpy.arange(arg_num_labels) == arg_labels[:]).astype(numpy.float32)
+    t0 = vector_special_ord(arg_labels, 0)
+    # labels = (numpy.arange(arg_num_labels) == arg_labels[:]).astype(numpy.float32)
+
+    size = len(arg_labels)
+    result = numpy.zeros((size, 11))
+    result[numpy.arange(size), t0] = 1
 
     # labels = (numpy.arange(arg_num_labels) == labels[:, None]).astype(numpy.float32)
-    return dataset, labels
+    return dataset, result
 
 
 pickle_file_name = maybe_pickle(['concatenate_output'], 1800)
