@@ -122,15 +122,14 @@ vector_special_ord = numpy.vectorize(special_ord)
 def reformat(dataset, arg_labels, arg_num_labels, arg_image_height, arg_image_width):
     dataset = dataset.reshape((-1, arg_image_height * arg_image_width)).astype(numpy.float32)
     # Map 0 to [1.0, 0.0, 0.0 ...], 1 to [0.0, 1.0, 0.0 ...]
-    # t0 = labels[:]
-    t0 = vector_special_ord(arg_labels, 0)
-    # labels = (numpy.arange(arg_num_labels) == arg_labels[:]).astype(numpy.float32)
-
     size = len(arg_labels)
-    result = numpy.zeros((size, 11))
-    result[numpy.arange(size), t0] = 1
+    result = []
+    for index in range(0, 5):
+        t0 = vector_special_ord(arg_labels, 0)
+        t1 = numpy.zeros((size, 11))
+        t1[numpy.arange(size), t0] = 1
+        result.append(t1)
 
-    # labels = (numpy.arange(arg_num_labels) == labels[:, None]).astype(numpy.float32)
     return dataset, result
 
 
@@ -153,6 +152,6 @@ logging.debug('Testing: %d %d' % (len(test_data), len(test_labels)))
 train_dataset, train_labels = reformat(train_data, train_labels, 10, image_height, image_width)
 valid_dataset, valid_labels = reformat(validation_data, validation_labels, 10, image_height, image_width)
 test_dataset, test_labels = reformat(test_data, test_labels, 10, image_height, image_width)
-print('Training set', train_dataset.shape, train_labels.shape)
-print('Validation set', valid_dataset.shape, valid_labels.shape)
-print('Test set', test_dataset.shape, test_labels.shape)
+print('Training set', train_dataset.shape, train_labels[0].shape)
+print('Validation set', valid_dataset.shape, valid_labels[0].shape)
+print('Test set', test_dataset.shape, test_labels[0].shape)
