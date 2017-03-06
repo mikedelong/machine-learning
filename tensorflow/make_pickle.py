@@ -5,6 +5,7 @@ import random
 from scipy import ndimage
 
 import numpy
+import tensorflow
 
 logging.basicConfig(format='%(asctime)s : %(levelname)s :: %(message)s', level=logging.DEBUG)
 
@@ -110,14 +111,17 @@ def split_data(arg_pickle_file_name, arg_train_size, arg_validation_size, arg_te
     return result_train_data, result_train_correct, result_validation_data, result_validation_correct, \
            result_test_data, result_test_correct
 
+
 def special_ord(arg, arg_index):
     char = arg[arg_index]
-    result  = ord(char)
+    result = ord(char)
     result = result if result != 32 else 64
     result -= 64
     return result
 
+
 vector_special_ord = numpy.vectorize(special_ord)
+
 
 def reformat(dataset, arg_labels, arg_num_labels, arg_image_height, arg_image_width):
     dataset = dataset.reshape((-1, arg_image_height * arg_image_width)).astype(numpy.float32)
@@ -131,6 +135,11 @@ def reformat(dataset, arg_labels, arg_num_labels, arg_image_height, arg_image_wi
         result.append(t1)
 
     return dataset, result
+
+
+def accuracy(predictions, labels):
+    return (100.0 * numpy.sum(numpy.argmax(predictions, 1) == numpy.argmax(labels, 1))
+            / predictions.shape[0])
 
 
 pickle_file_name = maybe_pickle(['concatenate_output'], 1800)
@@ -149,9 +158,77 @@ logging.debug('Training: %d %d' % (len(train_data), len(train_labels)))
 logging.debug('Validation: %d %d' % (len(validation_data), len(validation_labels)))
 logging.debug('Testing: %d %d' % (len(test_data), len(test_labels)))
 
-train_dataset, train_labels = reformat(train_data, train_labels, 10, image_height, image_width)
-valid_dataset, valid_labels = reformat(validation_data, validation_labels, 10, image_height, image_width)
-test_dataset, test_labels = reformat(test_data, test_labels, 10, image_height, image_width)
+num_labels = 11
+train_dataset, train_labels = reformat(train_data, train_labels, num_labels, image_height, image_width)
+valid_dataset, valid_labels = reformat(validation_data, validation_labels, num_labels, image_height, image_width)
+test_dataset, test_labels = reformat(test_data, test_labels, num_labels, image_height, image_width)
 print('Training set', train_dataset.shape, train_labels[0].shape)
 print('Validation set', valid_dataset.shape, valid_labels[0].shape)
 print('Test set', test_dataset.shape, test_labels[0].shape)
+
+# With gradient descent training, even this much data is prohibitive.
+# Subset the training data for faster turnaround.
+train_subset = 10000
+
+graph = tensorflow.Graph()
+with graph.as_default():
+    # Input data.
+    # Load the training, validation and test data into constants that are
+    # attached to the graph.
+    tf_train_dataset = tensorflow.constant(train_dataset[:train_subset, :])
+    tf_train_labels = tensorflow.constant(train_labels[0][:train_subset])
+    tf_valid_dataset = tensorflow.constant(valid_dataset)
+    tf_test_dataset = tensorflow.constant(test_dataset)
+
+    # Variables.
+    # These are the parameters that we are going to be training. The weight
+    # matrix will be initialized using random values following a (truncated)
+    # normal distribution. The biases get initialized to zero.
+    weights = tensorflow.Variable(
+        tensorflow.truncated_normal([image_height * image_width, num_labels]))
+    biases = tensorflow.Variable(tensorflow.zeros([num_labels]))
+
+    # Training computation.
+    # We multiply the inputs with the weight matrix, and add biases. We compute
+    # the softmax and cross-entropy (it's one operation in TensorFlow, because
+    # it's very common, and it can be optimized). We take the average of this
+    # cross-entropy across all training examples: that's our loss.
+    logits = tensorflow.matmul(tf_train_dataset, weights) + biases
+    loss = tensorflow.reduce_mean(
+        tensorflow.nn.softmax_cross_entropy_with_logits(logits, tf_train_labels))
+
+    # Optimizer.
+    # We are going to find the minimum of this loss using gradient descent.
+    optimizer = tensorflow.train.GradientDescentOptimizer(0.5).minimize(loss)
+
+    # Predictions for the training, validation, and test data.
+    # These are not part of training, but merely here so that we can report
+    # accuracy figures as we train.
+    train_prediction = tensorflow.nn.softmax(logits)
+    valid_prediction = tensorflow.nn.softmax(
+        tensorflow.matmul(tf_valid_dataset, weights) + biases)
+    test_prediction = tensorflow.nn.softmax(tensorflow.matmul(tf_test_dataset, weights) + biases)
+
+num_steps = 801
+
+with tensorflow.Session(graph=graph) as session:
+    # This is a one-time operation which ensures the parameters get initialized as
+    # we described in the graph: random weights for the matrix, zeros for the
+    # biases.
+    tensorflow.global_variables_initializer().run()
+    print('Initialized')
+    for step in range(num_steps):
+        # Run the computations. We tell .run() that we want to run the optimizer,
+        # and get the loss value and the training predictions returned as numpy
+        # arrays.
+        _, l, predictions = session.run([optimizer, loss, train_prediction])
+        if (step % 100 == 0):
+            print('Loss at step %d: %f' % (step, l))
+            print('Training accuracy: %.1f%%' % accuracy(
+                predictions, train_labels[0][:train_subset, :]))
+            # Calling .eval() on valid_prediction is basically like calling run(), but
+            # just to get that one numpy array. Note that it recomputes all its graph
+            # dependencies.
+            print('Validation accuracy: %.1f%%' % accuracy(
+                valid_prediction.eval(), valid_labels))
+    print('Test accuracy: %.1f%%' % accuracy(test_prediction.eval(), test_labels))
