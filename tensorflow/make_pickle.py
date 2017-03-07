@@ -211,7 +211,7 @@ with graph.as_default():
 
 num_steps = 801
 
-with tensorflow.Session(graph=graph) as session:
+with tensorflow.Session(graph=graph, config=tensorflow.ConfigProto(device_count={'GPU': 0})) as session:
     # This is a one-time operation which ensures the parameters get initialized as
     # we described in the graph: random weights for the matrix, zeros for the
     # biases.
@@ -230,5 +230,5 @@ with tensorflow.Session(graph=graph) as session:
             # just to get that one numpy array. Note that it recomputes all its graph
             # dependencies.
             print('Validation accuracy: %.1f%%' % accuracy(
-                valid_prediction.eval(), valid_labels))
+                valid_prediction.eval(), valid_labels[0]))
     print('Test accuracy: %.1f%%' % accuracy(test_prediction.eval(), test_labels))
