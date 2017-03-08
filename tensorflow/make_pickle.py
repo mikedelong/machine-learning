@@ -172,44 +172,42 @@ train_subset = 10000
 
 graph = tensorflow.Graph()
 with graph.as_default():
-    # Input data.
-    # Load the training, validation and test data into constants that are
-    # attached to the graph.
     tf_train_dataset = tensorflow.constant(train_dataset[:train_subset, :])
     tf_train_labels = tensorflow.constant(train_labels[0][:train_subset])
     tf_valid_dataset = tensorflow.constant(valid_dataset)
     tf_test_dataset = tensorflow.constant(test_dataset)
-
-    # Variables.
-    # These are the parameters that we are going to be training. The weight
-    # matrix will be initialized using random values following a (truncated)
-    # normal distribution. The biases get initialized to zero.
-    weights = tensorflow.Variable(
-        tensorflow.truncated_normal([image_height * image_width, num_labels]))
+    weights = tensorflow.Variable(tensorflow.truncated_normal([image_height * image_width, num_labels]))
     biases = tensorflow.Variable(tensorflow.zeros([num_labels]))
-
-    # Training computation.
-    # We multiply the inputs with the weight matrix, and add biases. We compute
-    # the softmax and cross-entropy (it's one operation in TensorFlow, because
-    # it's very common, and it can be optimized). We take the average of this
-    # cross-entropy across all training examples: that's our loss.
     logits = tensorflow.matmul(tf_train_dataset, weights) + biases
-    loss = tensorflow.reduce_mean(
-        tensorflow.nn.softmax_cross_entropy_with_logits(logits, tf_train_labels))
-
-    # Optimizer.
-    # We are going to find the minimum of this loss using gradient descent.
+    loss = tensorflow.reduce_mean(tensorflow.nn.softmax_cross_entropy_with_logits(logits, tf_train_labels))
     optimizer = tensorflow.train.GradientDescentOptimizer(0.5).minimize(loss)
-
-    # Predictions for the training, validation, and test data.
-    # These are not part of training, but merely here so that we can report
-    # accuracy figures as we train.
     train_prediction = tensorflow.nn.softmax(logits)
-    valid_prediction = tensorflow.nn.softmax(
-        tensorflow.matmul(tf_valid_dataset, weights) + biases)
+    valid_prediction = tensorflow.nn.softmax(tensorflow.matmul(tf_valid_dataset, weights) + biases)
     test_prediction = tensorflow.nn.softmax(tensorflow.matmul(tf_test_dataset, weights) + biases)
 
-num_steps = 801
+# nodes_count = 1024
+# batch_size = 128
+# graph_relu = tensorflow.Graph()
+# with graph_relu.as_default():
+#     tf_train_dataset = tensorflow.placeholder(tensorflow.float32, shape=(batch_size, image_height * image_width))
+#     tf_train_labels = tensorflow.placeholder(tensorflow.float32, shape=(batch_size, num_labels))
+#     tf_valid_dataset = tensorflow.constant(valid_dataset)
+#     tf_test_dataset = tensorflow.constant(test_dataset)
+#     weights_1 = tensorflow.Variable(tensorflow.truncated_normal([image_height * image_width, nodes_count]))
+#     biases_1 = tensorflow.Variable(tensorflow.zeros([nodes_count]))
+#     relu = tensorflow.nn.relu(tensorflow.matmul(tf_train_dataset, weights_1) + biases_1)
+#     weights_2 = tensorflow.Variable(tensorflow.truncated_normal([nodes_count, num_labels]))
+#     biases_2 = tensorflow.Variable(tensorflow.zeros([num_labels]))
+#     logits = tensorflow.matmul(relu, weights_2) + biases_2
+#     loss = tensorflow.reduce_mean(tensorflow.nn.softmax_cross_entropy_with_logits(logits, tf_train_labels))
+#     optimizer = tensorflow.train.GradientDescentOptimizer(0.5).minimize(loss)
+#     train_prediction = tensorflow.nn.softmax(logits)
+#     valid_prediction = tensorflow.nn.softmax(
+#         tensorflow.matmul(tensorflow.nn.relu(tensorflow.matmul(tf_valid_dataset, weights_1) + biases_1), weights_2) + biases_2)
+#     test_prediction = tensorflow.nn.softmax(
+#         tensorflow.matmul(tensorflow.nn.relu(tensorflow.matmul(tf_test_dataset, weights_1) + biases_1), weights_2) + biases_2)
+
+num_steps = 3001
 
 with tensorflow.Session(graph=graph, config=tensorflow.ConfigProto(device_count={'GPU': 0})) as session:
     # This is a one-time operation which ensures the parameters get initialized as
