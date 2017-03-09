@@ -165,6 +165,7 @@ test_dataset, test_labels = reformat(test_data, test_labels, num_labels, image_h
 print('Training set', train_dataset.shape, train_labels[0].shape)
 print('Validation set', valid_dataset.shape, valid_labels[0].shape)
 print('Test set', test_dataset.shape, test_labels[0].shape)
+batch_size = 128
 
 # With gradient descent training, even this much data is prohibitive.
 # Subset the training data for faster turnaround.
@@ -185,48 +186,23 @@ with graph.as_default():
     valid_prediction = tensorflow.nn.softmax(tensorflow.matmul(tf_valid_dataset, weights) + biases)
     test_prediction = tensorflow.nn.softmax(tensorflow.matmul(tf_test_dataset, weights) + biases)
 
-# nodes_count = 1024
-# batch_size = 128
-# graph_relu = tensorflow.Graph()
-# with graph_relu.as_default():
-#     tf_train_dataset = tensorflow.placeholder(tensorflow.float32, shape=(batch_size, image_height * image_width))
-#     tf_train_labels = tensorflow.placeholder(tensorflow.float32, shape=(batch_size, num_labels))
-#     tf_valid_dataset = tensorflow.constant(valid_dataset)
-#     tf_test_dataset = tensorflow.constant(test_dataset)
-#     weights_1 = tensorflow.Variable(tensorflow.truncated_normal([image_height * image_width, nodes_count]))
-#     biases_1 = tensorflow.Variable(tensorflow.zeros([nodes_count]))
-#     relu = tensorflow.nn.relu(tensorflow.matmul(tf_train_dataset, weights_1) + biases_1)
-#     weights_2 = tensorflow.Variable(tensorflow.truncated_normal([nodes_count, num_labels]))
-#     biases_2 = tensorflow.Variable(tensorflow.zeros([num_labels]))
-#     logits = tensorflow.matmul(relu, weights_2) + biases_2
-#     loss = tensorflow.reduce_mean(tensorflow.nn.softmax_cross_entropy_with_logits(logits, tf_train_labels))
-#     optimizer = tensorflow.train.GradientDescentOptimizer(0.5).minimize(loss)
-#     train_prediction = tensorflow.nn.softmax(logits)
-#     valid_prediction = tensorflow.nn.softmax(
-#         tensorflow.matmul(tensorflow.nn.relu(tensorflow.matmul(tf_valid_dataset, weights_1) + biases_1), weights_2) + biases_2)
-#     test_prediction = tensorflow.nn.softmax(
-#         tensorflow.matmul(tensorflow.nn.relu(tensorflow.matmul(tf_test_dataset, weights_1) + biases_1), weights_2) + biases_2)
+
 
 num_steps = 3001
 
 with tensorflow.Session(graph=graph, config=tensorflow.ConfigProto(device_count={'GPU': 0})) as session:
-    # This is a one-time operation which ensures the parameters get initialized as
-    # we described in the graph: random weights for the matrix, zeros for the
-    # biases.
     tensorflow.global_variables_initializer().run()
-    print('Initialized')
+    print('Initialized.')
     for step in range(num_steps):
         # Run the computations. We tell .run() that we want to run the optimizer,
-        # and get the loss value and the training predictions returned as numpy
-        # arrays.
+        # and get the loss value and the training predictions returned as numpy arrays
         _, l, predictions = session.run([optimizer, loss, train_prediction])
         if (step % 100 == 0):
             print('Loss at step %d: %f' % (step, l))
-            print('Training accuracy: %.1f%%' % accuracy(
-                predictions, train_labels[0][:train_subset, :]))
+            print('Training accuracy: %.1f%%' % accuracy(predictions, train_labels[0][:train_subset, :]))
             # Calling .eval() on valid_prediction is basically like calling run(), but
             # just to get that one numpy array. Note that it recomputes all its graph
             # dependencies.
-            print('Validation accuracy: %.1f%%' % accuracy(
-                valid_prediction.eval(), valid_labels[0]))
+            print('Validation accuracy: %.1f%%' % accuracy(valid_prediction.eval(), valid_labels[0]))
     print('Test accuracy: %.1f%%' % accuracy(test_prediction.eval(), test_labels))
+
