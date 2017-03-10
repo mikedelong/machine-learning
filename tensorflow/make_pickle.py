@@ -173,8 +173,10 @@ train_subset = 10000
 
 graph = tensorflow.Graph()
 with graph.as_default():
-    tf_train_dataset = tensorflow.constant(train_dataset[:train_subset, :])
-    tf_train_labels = tensorflow.constant(train_labels[0][:train_subset])
+    # tf_train_dataset = tensorflow.constant(train_dataset[:train_subset, :])
+    # tf_train_labels = tensorflow.constant(train_labels[0][:train_subset])
+    tf_train_dataset = tensorflow.placeholder(tensorflow.float32, shape=(batch_size, image_height * image_width))
+    tf_train_labels = tensorflow.placeholder(tensorflow.float32, shape=(batch_size, num_labels))
     tf_valid_dataset = tensorflow.constant(valid_dataset)
     tf_test_dataset = tensorflow.constant(test_dataset)
     weights = tensorflow.Variable(tensorflow.truncated_normal([image_height * image_width, num_labels]))
@@ -190,19 +192,38 @@ with graph.as_default():
 
 num_steps = 3001
 
-with tensorflow.Session(graph=graph, config=tensorflow.ConfigProto(device_count={'GPU': 0})) as session:
-    tensorflow.global_variables_initializer().run()
-    print('Initialized.')
-    for step in range(num_steps):
-        # Run the computations. We tell .run() that we want to run the optimizer,
-        # and get the loss value and the training predictions returned as numpy arrays
-        _, l, predictions = session.run([optimizer, loss, train_prediction])
-        if (step % 100 == 0):
-            print('Loss at step %d: %f' % (step, l))
-            print('Training accuracy: %.1f%%' % accuracy(predictions, train_labels[0][:train_subset, :]))
-            # Calling .eval() on valid_prediction is basically like calling run(), but
-            # just to get that one numpy array. Note that it recomputes all its graph
-            # dependencies.
-            print('Validation accuracy: %.1f%%' % accuracy(valid_prediction.eval(), valid_labels[0]))
-    print('Test accuracy: %.1f%%' % accuracy(test_prediction.eval(), test_labels))
+# with tensorflow.Session(graph=graph, config=tensorflow.ConfigProto(device_count={'GPU': 0})) as session:
+#     tensorflow.global_variables_initializer().run()
+#     print('Initialized.')
+#     for step in range(num_steps):
+#         # Run the computations. We tell .run() that we want to run the optimizer,
+#         # and get the loss value and the training predictions returned as numpy arrays
+#         _, l, predictions = session.run([optimizer, loss, train_prediction])
+#         if (step % 100 == 0):
+#             print('Loss at step %d: %f' % (step, l))
+#             print('Training accuracy: %.1f%%' % accuracy(predictions, train_labels[:train_subset, :]))
+#             # Calling .eval() on valid_prediction is basically like calling run(), but
+#             # just to get that one numpy array. Note that it recomputes all its graph
+#             # dependencies.
+#             print('Validation accuracy: %.1f%%' % accuracy(valid_prediction.eval(), valid_labels[0]))
+#     print('Test accuracy: %.1f%%' % accuracy(test_prediction.eval(), test_labels))
 
+with tensorflow.Session(graph=graph, config=tensorflow.ConfigProto(device_count={'GPU': 0})) as session:
+  tensorflow.global_variables_initializer().run()
+  logging.debug("Initialized")
+  for step in range(num_steps):
+    offset = (step * batch_size) % (train_labels[0].shape[0] - batch_size)
+    # logging.debug('offset: %d' % offset)
+    # Generate a minibatch.
+    batch_data = train_dataset[offset:(offset + batch_size), :]
+    batch_labels = train_labels[0][offset:(offset + batch_size), :]
+    # Prepare a dictionary telling the session where to feed the minibatch.
+    # The key of the dictionary is the placeholder node of the graph to be fed,
+    # and the value is the numpy array to feed to it.
+    feed_dict = {tf_train_dataset : batch_data, tf_train_labels : batch_labels}
+    _, l, predictions = session.run([optimizer, loss, train_prediction], feed_dict=feed_dict)
+    if (step % 500 == 0):
+      logging.info("Minibatch loss at step %d: %f" % (step, l))
+      logging.info("Minibatch accuracy: %.1f%%" % accuracy(predictions, batch_labels))
+      logging.info("Validation accuracy: %.1f%%" % accuracy(valid_prediction.eval(), valid_labels))
+  logging.info("Test accuracy: %.1f%%" % accuracy(test_prediction.eval(), test_labels))
