@@ -192,21 +192,6 @@ with graph.as_default():
 
 num_steps = 3001
 
-# with tensorflow.Session(graph=graph, config=tensorflow.ConfigProto(device_count={'GPU': 0})) as session:
-#     tensorflow.global_variables_initializer().run()
-#     print('Initialized.')
-#     for step in range(num_steps):
-#         # Run the computations. We tell .run() that we want to run the optimizer,
-#         # and get the loss value and the training predictions returned as numpy arrays
-#         _, l, predictions = session.run([optimizer, loss, train_prediction])
-#         if (step % 100 == 0):
-#             print('Loss at step %d: %f' % (step, l))
-#             print('Training accuracy: %.1f%%' % accuracy(predictions, train_labels[:train_subset, :]))
-#             # Calling .eval() on valid_prediction is basically like calling run(), but
-#             # just to get that one numpy array. Note that it recomputes all its graph
-#             # dependencies.
-#             print('Validation accuracy: %.1f%%' % accuracy(valid_prediction.eval(), valid_labels[0]))
-#     print('Test accuracy: %.1f%%' % accuracy(test_prediction.eval(), test_labels))
 
 with tensorflow.Session(graph=graph, config=tensorflow.ConfigProto(device_count={'GPU': 0})) as session:
   tensorflow.global_variables_initializer().run()
@@ -227,3 +212,19 @@ with tensorflow.Session(graph=graph, config=tensorflow.ConfigProto(device_count=
       logging.info("Minibatch accuracy: %.1f%%" % accuracy(predictions, batch_labels))
       logging.info("Validation accuracy: %.1f%%" % accuracy(valid_prediction.eval(), valid_labels))
   logging.info("Test accuracy: %.1f%%" % accuracy(test_prediction.eval(), test_labels))
+
+# with tensorflow.Session(graph=graph, config=tensorflow.ConfigProto(device_count={'GPU': 0})) as session:
+#     tensorflow.global_variables_initializer().run()
+#     print('Initialized.')
+#     for step in range(num_steps):
+#         # Run the computations. We tell .run() that we want to run the optimizer,
+#         # and get the loss value and the training predictions returned as numpy arrays
+#         _, l, predictions = session.run([optimizer, loss, train_prediction])
+#         if (step % 100 == 0):
+#             print('Loss at step %d: %f' % (step, l))
+#             print('Training accuracy: %.1f%%' % accuracy(predictions, train_labels[:train_subset, :]))
+#             # Calling .eval() on valid_prediction is basically like calling run(), but
+#             # just to get that one numpy array. Note that it recomputes all its graph
+#             # dependencies.
+#             print('Validation accuracy: %.1f%%' % accuracy(valid_prediction.eval(), valid_labels[0]))
+#     print('Test accuracy: %.1f%%' % accuracy(test_prediction.eval(), test_labels))
