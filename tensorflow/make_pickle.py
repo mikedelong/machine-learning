@@ -173,8 +173,6 @@ train_subset = 10000
 
 graph = tensorflow.Graph()
 with graph.as_default():
-    # tf_train_dataset = tensorflow.constant(train_dataset[:train_subset, :])
-    # tf_train_labels = tensorflow.constant(train_labels[0][:train_subset])
     tf_train_dataset = tensorflow.placeholder(tensorflow.float32, shape=(batch_size, image_height * image_width))
     tf_train_labels = tensorflow.placeholder(tensorflow.float32, shape=(batch_size, num_labels))
     tf_valid_dataset = tensorflow.constant(valid_dataset)
@@ -195,10 +193,9 @@ num_steps = 3001
 
 with tensorflow.Session(graph=graph, config=tensorflow.ConfigProto(device_count={'GPU': 0})) as session:
   tensorflow.global_variables_initializer().run()
-  logging.debug("Initialized")
+  logging.debug("Initialized.")
   for step in range(num_steps):
     offset = (step * batch_size) % (train_labels[0].shape[0] - batch_size)
-    # logging.debug('offset: %d' % offset)
     # Generate a minibatch.
     batch_data = train_dataset[offset:(offset + batch_size), :]
     batch_labels = train_labels[0][offset:(offset + batch_size), :]
