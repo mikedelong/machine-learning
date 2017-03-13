@@ -138,8 +138,14 @@ def reformat(dataset, arg_labels, arg_num_labels, arg_image_height, arg_image_wi
 
 
 def accuracy(predictions, labels):
-    return (100.0 * numpy.sum(numpy.argmax(predictions, 1) == numpy.argmax(labels, 1))
-            / predictions.shape[0])
+    t0 = numpy.argmax(predictions, 1)
+    t1 = numpy.argmax(labels, 1)
+    t2 = t0 == t1
+    t3 = numpy.sum(t2)
+    result = 100.0 * t3/predictions.shape[0]
+    return result
+    # return (100.0 * numpy.sum(numpy.argmax(predictions, 1) == numpy.argmax(labels, 1))
+    #         / predictions.shape[0])
 
 
 pickle_file_name = maybe_pickle(['concatenate_output'], 1800)
@@ -186,29 +192,26 @@ with graph.as_default():
     valid_prediction = tensorflow.nn.softmax(tensorflow.matmul(tf_valid_dataset, weights) + biases)
     test_prediction = tensorflow.nn.softmax(tensorflow.matmul(tf_test_dataset, weights) + biases)
 
-
-
 num_steps = 3001
 
-
 with tensorflow.Session(graph=graph, config=tensorflow.ConfigProto(device_count={'GPU': 0})) as session:
-  tensorflow.global_variables_initializer().run()
-  logging.debug("Initialized.")
-  for step in range(num_steps):
-    offset = (step * batch_size) % (train_labels[0].shape[0] - batch_size)
-    # Generate a minibatch.
-    batch_data = train_dataset[offset:(offset + batch_size), :]
-    batch_labels = train_labels[0][offset:(offset + batch_size), :]
-    # Prepare a dictionary telling the session where to feed the minibatch.
-    # The key of the dictionary is the placeholder node of the graph to be fed,
-    # and the value is the numpy array to feed to it.
-    feed_dict = {tf_train_dataset : batch_data, tf_train_labels : batch_labels}
-    _, l, predictions = session.run([optimizer, loss, train_prediction], feed_dict=feed_dict)
-    if (step % 500 == 0):
-      logging.info("Minibatch loss at step %d: %f" % (step, l))
-      logging.info("Minibatch accuracy: %.1f%%" % accuracy(predictions, batch_labels))
-      logging.info("Validation accuracy: %.1f%%" % accuracy(valid_prediction.eval(), valid_labels))
-  logging.info("Test accuracy: %.1f%%" % accuracy(test_prediction.eval(), test_labels))
+    tensorflow.global_variables_initializer().run()
+    logging.debug("Initialized.")
+    for step in range(num_steps):
+        offset = (step * batch_size) % (train_labels[0].shape[0] - batch_size)
+        # Generate a minibatch.
+        batch_data = train_dataset[offset:(offset + batch_size), :]
+        batch_labels = train_labels[0][offset:(offset + batch_size), :]
+        # Prepare a dictionary telling the session where to feed the minibatch.
+        # The key of the dictionary is the placeholder node of the graph to be fed,
+        # and the value is the numpy array to feed to it.
+        feed_dict = {tf_train_dataset: batch_data, tf_train_labels: batch_labels}
+        _, l, predictions = session.run([optimizer, loss, train_prediction], feed_dict=feed_dict)
+        if (step % 500 == 0):
+            logging.info("Minibatch loss at step %d: %f" % (step, l))
+            logging.info("Minibatch accuracy: %.1f%%" % accuracy(predictions, batch_labels))
+            logging.info("Validation accuracy: %.1f%%" % accuracy(valid_prediction.eval(), valid_labels))
+    logging.info("Test accuracy: %.1f%%" % accuracy(test_prediction.eval(), test_labels))
 
 # with tensorflow.Session(graph=graph, config=tensorflow.ConfigProto(device_count={'GPU': 0})) as session:
 #     tensorflow.global_variables_initializer().run()
