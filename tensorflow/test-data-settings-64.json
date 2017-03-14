@@ -1,0 +1,10 @@
+{
+  "blank_file": "./blank.png",
+  "files_to_generate": 100000,
+  "input_folder": "./notMNIST_small/",
+  "output_folder": "./concatenate_output/",
+  "output_image_height" : 64,
+  "output_image_width" : 64,
+  "random_seed": 1,
+  "": ""
+}
