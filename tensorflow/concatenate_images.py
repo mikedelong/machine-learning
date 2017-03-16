@@ -28,6 +28,9 @@ else:
 
 count = 0
 
+
+blank_image = Image.new(mode='L', size=(28, 28), color=0)
+blank_image.save(blank_file)
 for file_count in range(0, files_to_generate):
     try:
         output_filename = str(file_count) + '_'
