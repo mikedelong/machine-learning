@@ -10,8 +10,8 @@ import tensorflow
 logging.basicConfig(format='%(asctime)s : %(levelname)s :: %(message)s', level=logging.DEBUG)
 
 # todo fix the image size; our images aren't square
-image_size = 28  # Pixel width and height.
-image_height = 28
+image_size =  28  # Pixel width and height.
+image_height =  28
 image_width = 5 * 28
 pixel_depth = 255.0  # Number of levels per pixel.
 
@@ -34,17 +34,17 @@ def load_letter(folder, min_num_images):
             dataset[num_images, :, :] = image_data
             num_images += 1
         except IOError as e:
-            print('Could not read:', image_file, ':', e, '- it\'s ok, skipping.')
+            logging.warn('Could not read: %s : %s - it\'s ok, skipping.' % (image_file, e))
 
-    print(correct_values)
+    logging.debug('correct values: %s' % correct_values)
     dataset = dataset[0:num_images, :, :]
     if num_images < min_num_images:
         raise Exception('Many fewer images than expected: %d < %d' %
                         (num_images, min_num_images))
 
-    logging.debug('Full dataset tensor:' % dataset.shape)
-    logging.debug('Mean:' % numpy.mean(dataset))
-    logging.debug('Standard deviation:' % numpy.std(dataset))
+    logging.debug('Full dataset tensor: %s' % str(dataset.shape))
+    logging.debug('Mean: %s' % numpy.mean(dataset))
+    logging.debug('Standard deviation: %s' % numpy.std(dataset))
     return dataset, correct_values
 
 
@@ -142,7 +142,7 @@ def accuracy(predictions, labels):
     t1 = numpy.argmax(labels, 1)
     t2 = t0 == t1
     t3 = numpy.sum(t2)
-    result = 100.0 * t3/predictions.shape[0]
+    result = 100.0 * t3 / predictions.shape[0]
     return result
     # return (100.0 * numpy.sum(numpy.argmax(predictions, 1) == numpy.argmax(labels, 1))
     #         / predictions.shape[0])
@@ -168,9 +168,9 @@ num_labels = 11
 train_dataset, train_labels = reformat(train_data, train_labels, num_labels, image_height, image_width)
 valid_dataset, valid_labels = reformat(validation_data, validation_labels, num_labels, image_height, image_width)
 test_dataset, test_labels = reformat(test_data, test_labels, num_labels, image_height, image_width)
-print('Training set', train_dataset.shape, train_labels[0].shape)
-print('Validation set', valid_dataset.shape, valid_labels[0].shape)
-print('Test set', test_dataset.shape, test_labels[0].shape)
+logging.info('Training set: %s %s' % (train_dataset.shape, train_labels[0].shape))
+logging.info('Validation set: %s %s' % (valid_dataset.shape, valid_labels[0].shape))
+logging.debug('Test set: %s %s ' % (test_dataset.shape, test_labels[0].shape))
 batch_size = 128
 
 # With gradient descent training, even this much data is prohibitive.
@@ -192,7 +192,7 @@ with graph.as_default():
     valid_prediction = tensorflow.nn.softmax(tensorflow.matmul(tf_valid_dataset, weights) + biases)
     test_prediction = tensorflow.nn.softmax(tensorflow.matmul(tf_test_dataset, weights) + biases)
 
-num_steps = 3001
+num_steps = 10001 # 3001
 
 with tensorflow.Session(graph=graph, config=tensorflow.ConfigProto(device_count={'GPU': 0})) as session:
     tensorflow.global_variables_initializer().run()
