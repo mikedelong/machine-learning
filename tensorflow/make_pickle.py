@@ -78,6 +78,7 @@ def make_arrays(nb_rows, arg_image_height, arg_image_width):
     return dataset, labels
 
 
+# todo split labels into 5 one-hot result sets
 def split_data(arg_pickle_file_name, arg_train_size, arg_validation_size, arg_test_size, arg_image_height,
                arg_image_width):
     logging.debug(arg_pickle_file_name)
@@ -123,7 +124,7 @@ def special_ord(arg, arg_index):
 vector_special_ord = numpy.vectorize(special_ord)
 
 
-def reformat(dataset, arg_labels, arg_num_labels, arg_image_height, arg_image_width):
+def reformat_as_list(dataset, arg_labels, arg_num_labels, arg_image_height, arg_image_width):
     dataset = dataset.reshape((-1, arg_image_height * arg_image_width)).astype(numpy.float32)
     # Map 0 to [1.0, 0.0, 0.0 ...], 1 to [0.0, 1.0, 0.0 ...]
     size = len(arg_labels)
@@ -136,6 +137,20 @@ def reformat(dataset, arg_labels, arg_num_labels, arg_image_height, arg_image_wi
 
     return dataset, result
 
+def reformat(dataset, arg_labels, arg_num_labels, arg_image_height, arg_image_width):
+    dataset = dataset.reshape((-1, arg_image_height * arg_image_width)).astype(numpy.float32)
+    # Map 0 to [1.0, 0.0, 0.0 ...], 1 to [0.0, 1.0, 0.0 ...]
+    size = len(arg_labels)
+    # result = numpy.ndarray(shape=(5, arg_num_labels, 11))
+    t2 = []
+    for index in range(0, 5):
+        t0 = vector_special_ord(arg_labels, 0)
+        t1 = numpy.zeros((size, 11))
+        t1[numpy.arange(size), t0] = 1
+        t2.append(t1)
+    result = numpy.asanyarray(t2)
+
+    return dataset, result
 
 def accuracy(predictions, labels):
     t0 = numpy.argmax(predictions, 1)
@@ -168,9 +183,9 @@ num_labels = 11
 train_dataset, train_labels = reformat(train_data, train_labels, num_labels, image_height, image_width)
 valid_dataset, valid_labels = reformat(validation_data, validation_labels, num_labels, image_height, image_width)
 test_dataset, test_labels = reformat(test_data, test_labels, num_labels, image_height, image_width)
-logging.info('Training set: %s %s' % (train_dataset.shape, train_labels[0].shape))
-logging.info('Validation set: %s %s' % (valid_dataset.shape, valid_labels[0].shape))
-logging.debug('Test set: %s %s ' % (test_dataset.shape, test_labels[0].shape))
+logging.info('Training set: %s %s' % (train_dataset.shape, train_labels.shape)) # was train_labels[0].shape
+logging.info('Validation set: %s %s' % (valid_dataset.shape, valid_labels.shape))
+logging.debug('Test set: %s %s ' % (test_dataset.shape, test_labels.shape))
 batch_size = 128
 
 # With gradient descent training, even this much data is prohibitive.
@@ -184,9 +199,11 @@ with graph.as_default():
     tf_valid_dataset = tensorflow.constant(valid_dataset)
     tf_test_dataset = tensorflow.constant(test_dataset)
     weights = tensorflow.Variable(tensorflow.truncated_normal([image_height * image_width, num_labels]))
+
     biases = tensorflow.Variable(tensorflow.zeros([num_labels]))
     logits = tensorflow.matmul(tf_train_dataset, weights) + biases
     loss = tensorflow.reduce_mean(tensorflow.nn.softmax_cross_entropy_with_logits(logits, tf_train_labels))
+
     optimizer = tensorflow.train.GradientDescentOptimizer(0.5).minimize(loss)
     train_prediction = tensorflow.nn.softmax(logits)
     valid_prediction = tensorflow.nn.softmax(tensorflow.matmul(tf_valid_dataset, weights) + biases)
