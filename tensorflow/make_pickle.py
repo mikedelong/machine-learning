@@ -195,14 +195,18 @@ train_subset = 10000
 graph = tensorflow.Graph()
 with graph.as_default():
     tf_train_dataset = tensorflow.placeholder(tensorflow.float32, shape=(batch_size, image_height * image_width))
-    tf_train_labels = tensorflow.placeholder(tensorflow.float32, shape=(batch_size, num_labels))
+    tf_train_labels0 = tensorflow.placeholder(tensorflow.float32, shape=(batch_size, num_labels))
+    tf_train_labels1 = tensorflow.placeholder(tensorflow.float32, shape=(batch_size, num_labels))
+    tf_train_labels2 = tensorflow.placeholder(tensorflow.float32, shape=(batch_size, num_labels))
+    tf_train_labels3 = tensorflow.placeholder(tensorflow.float32, shape=(batch_size, num_labels))
+    tf_train_labels4 = tensorflow.placeholder(tensorflow.float32, shape=(batch_size, num_labels))
     tf_valid_dataset = tensorflow.constant(valid_dataset)
     tf_test_dataset = tensorflow.constant(test_dataset)
     weights = tensorflow.Variable(tensorflow.truncated_normal([image_height * image_width, num_labels]))
 
     biases = tensorflow.Variable(tensorflow.zeros([num_labels]))
     logits = tensorflow.matmul(tf_train_dataset, weights) + biases
-    loss = tensorflow.reduce_mean(tensorflow.nn.softmax_cross_entropy_with_logits(logits, tf_train_labels))
+    loss = tensorflow.reduce_mean(tensorflow.nn.softmax_cross_entropy_with_logits(logits, tf_train_labels0))
 
     optimizer = tensorflow.train.GradientDescentOptimizer(0.5).minimize(loss)
     train_prediction = tensorflow.nn.softmax(logits)
@@ -218,15 +222,25 @@ with tensorflow.Session(graph=graph, config=tensorflow.ConfigProto(device_count=
         offset = (step * batch_size) % (train_labels[0].shape[0] - batch_size)
         # Generate a minibatch.
         batch_data = train_dataset[offset:(offset + batch_size), :]
-        batch_labels = train_labels[0][offset:(offset + batch_size), :]
+        batch_labels0 = train_labels[0][offset:(offset + batch_size), :]
+        batch_labels1 = train_labels[1][offset:(offset + batch_size), :]
+        batch_labels2 = train_labels[2][offset:(offset + batch_size), :]
+        batch_labels3 = train_labels[3][offset:(offset + batch_size), :]
+        batch_labels4 = train_labels[4][offset:(offset + batch_size), :]
         # Prepare a dictionary telling the session where to feed the minibatch.
         # The key of the dictionary is the placeholder node of the graph to be fed,
         # and the value is the numpy array to feed to it.
-        feed_dict = {tf_train_dataset: batch_data, tf_train_labels: batch_labels}
+        feed_dict = {tf_train_dataset: batch_data,
+                     tf_train_labels0: batch_labels0,
+                     tf_train_labels1: batch_labels1,
+                     tf_train_labels2: batch_labels2,
+                     tf_train_labels3: batch_labels3,
+                     tf_train_labels4: batch_labels4,
+                     }
         _, l, predictions = session.run([optimizer, loss, train_prediction], feed_dict=feed_dict)
         if (step % 500 == 0):
             logging.info("Minibatch loss at step %d: %f" % (step, l))
-            logging.info("Minibatch accuracy: %.1f%%" % accuracy(predictions, batch_labels))
+            logging.info("Minibatch accuracy: %.1f%%" % accuracy(predictions, batch_labels0))
             logging.info("Validation accuracy: %.1f%%" % accuracy(valid_prediction.eval(), valid_labels))
     logging.info("Test accuracy: %.1f%%" % accuracy(test_prediction.eval(), test_labels))
 
