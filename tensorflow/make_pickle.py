@@ -204,14 +204,28 @@ with graph.as_default():
     tf_test_dataset = tensorflow.constant(test_dataset)
     weights = tensorflow.Variable(tensorflow.truncated_normal([image_height * image_width, num_labels]))
 
-    biases = tensorflow.Variable(tensorflow.zeros([num_labels]))
-    logits = tensorflow.matmul(tf_train_dataset, weights) + biases
-    loss = tensorflow.reduce_mean(tensorflow.nn.softmax_cross_entropy_with_logits(logits, tf_train_labels0))
+    biases0 = tensorflow.Variable(tensorflow.zeros([num_labels]))
+    logits0 = tensorflow.matmul(tf_train_dataset, weights) + biases0
+    biases1 = tensorflow.Variable(tensorflow.zeros([num_labels]))
+    logits1 = tensorflow.matmul(tf_train_dataset, weights) + biases1
+    biases2 = tensorflow.Variable(tensorflow.zeros([num_labels]))
+    logits2 = tensorflow.matmul(tf_train_dataset, weights) + biases2
+    biases3 = tensorflow.Variable(tensorflow.zeros([num_labels]))
+    logits3 = tensorflow.matmul(tf_train_dataset, weights) + biases3
+    biases4 = tensorflow.Variable(tensorflow.zeros([num_labels]))
+    logits4 = tensorflow.matmul(tf_train_dataset, weights) + biases4
+
+    loss = \
+        tensorflow.reduce_mean(tensorflow.nn.softmax_cross_entropy_with_logits(logits0, tf_train_labels0)) + \
+        tensorflow.reduce_mean(tensorflow.nn.softmax_cross_entropy_with_logits(logits1, tf_train_labels1)) + \
+        tensorflow.reduce_mean(tensorflow.nn.softmax_cross_entropy_with_logits(logits2, tf_train_labels2)) + \
+        tensorflow.reduce_mean(tensorflow.nn.softmax_cross_entropy_with_logits(logits3, tf_train_labels3)) + \
+        tensorflow.reduce_mean(tensorflow.nn.softmax_cross_entropy_with_logits(logits4, tf_train_labels4))
 
     optimizer = tensorflow.train.GradientDescentOptimizer(0.5).minimize(loss)
-    train_prediction = tensorflow.nn.softmax(logits)
-    valid_prediction = tensorflow.nn.softmax(tensorflow.matmul(tf_valid_dataset, weights) + biases)
-    test_prediction = tensorflow.nn.softmax(tensorflow.matmul(tf_test_dataset, weights) + biases)
+    train_prediction = tensorflow.nn.softmax(logits0)
+    valid_prediction = tensorflow.nn.softmax(tensorflow.matmul(tf_valid_dataset, weights) + biases0)
+    test_prediction = tensorflow.nn.softmax(tensorflow.matmul(tf_test_dataset, weights) + biases0)
 
 num_steps = 10001 # 3001
 
