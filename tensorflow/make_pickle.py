@@ -223,7 +223,13 @@ with graph.as_default():
         tensorflow.reduce_mean(tensorflow.nn.softmax_cross_entropy_with_logits(logits4, tf_train_labels4))
 
     optimizer = tensorflow.train.GradientDescentOptimizer(0.5).minimize(loss)
-    train_prediction = tensorflow.nn.softmax(logits0)
+    train_prediction0 = tensorflow.nn.softmax(logits0)
+    train_prediction1 = tensorflow.nn.softmax(logits1)
+    train_prediction2 = tensorflow.nn.softmax(logits2)
+    train_prediction3 = tensorflow.nn.softmax(logits3)
+    train_prediction4 = tensorflow.nn.softmax(logits4)
+    train_prediction = numpy.asanyarray([train_prediction0, train_prediction1, train_prediction2, train_prediction3,
+                                         train_prediction4])
     valid_prediction = tensorflow.nn.softmax(tensorflow.matmul(tf_valid_dataset, weights) + biases0)
     test_prediction = tensorflow.nn.softmax(tensorflow.matmul(tf_test_dataset, weights) + biases0)
 
