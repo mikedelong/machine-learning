@@ -228,8 +228,9 @@ with graph.as_default():
     train_prediction2 = tensorflow.nn.softmax(logits2)
     train_prediction3 = tensorflow.nn.softmax(logits3)
     train_prediction4 = tensorflow.nn.softmax(logits4)
-    train_prediction = numpy.asanyarray([train_prediction0, train_prediction1, train_prediction2, train_prediction3,
+    train_prediction = tensorflow.pack([train_prediction0, train_prediction1, train_prediction2, train_prediction3,
                                          train_prediction4])
+    # make the ndarray into a Tensor
     valid_prediction = tensorflow.nn.softmax(tensorflow.matmul(tf_valid_dataset, weights) + biases0)
     test_prediction = tensorflow.nn.softmax(tensorflow.matmul(tf_test_dataset, weights) + biases0)
 
