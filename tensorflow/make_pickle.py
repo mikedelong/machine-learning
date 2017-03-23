@@ -152,7 +152,7 @@ def reformat(dataset, arg_labels, arg_num_labels, arg_image_height, arg_image_wi
 
     return dataset, result
 
-def accuracy(predictions, labels):
+def accuracy_old(predictions, labels):
     t0 = numpy.argmax(predictions, 1)
     t1 = numpy.argmax(labels, 1)
     t2 = t0 == t1
@@ -162,6 +162,41 @@ def accuracy(predictions, labels):
     # return (100.0 * numpy.sum(numpy.argmax(predictions, 1) == numpy.argmax(labels, 1))
     #         / predictions.shape[0])
 
+def accuracy(predictions, labels0, labels1, labels2, labels3, labels4):
+
+    result = 0
+    t0 = numpy.argmax(predictions[0], 1)
+    t1 = numpy.argmax(labels0, 1)
+    t2 = t0 == t1
+    t3 = numpy.sum(t2)
+    result += 100.0 * t3 / predictions[0].shape[0]
+    t0 = numpy.argmax(predictions[1], 1)
+    t1 = numpy.argmax(labels1, 1)
+    t2 = t0 == t1
+    t3 = numpy.sum(t2)
+    result += 100.0 * t3 / predictions[1].shape[0]
+
+    t0 = numpy.argmax(predictions[2], 1)
+    t1 = numpy.argmax(labels2, 1)
+    t2 = t0 == t1
+    t3 = numpy.sum(t2)
+    result += 100.0 * t3 / predictions[2].shape[0]
+    t0 = numpy.argmax(predictions[3], 1)
+    t1 = numpy.argmax(labels3, 1)
+    t2 = t0 == t1
+    t3 = numpy.sum(t2)
+    result += 100.0 * t3 / predictions[3].shape[0]
+    t0 = numpy.argmax(predictions[4], 1)
+    t1 = numpy.argmax(labels4, 1)
+    t2 = t0 == t1
+    t3 = numpy.sum(t2)
+    result += 100.0 * t3 / predictions[4].shape[0]
+
+
+
+    return result
+    # return (100.0 * numpy.sum(numpy.argmax(predictions, 1) == numpy.argmax(labels, 1))
+    #         / predictions.shape[0])
 
 pickle_file_name = maybe_pickle(['concatenate_output'], 1800)
 
@@ -261,7 +296,8 @@ with tensorflow.Session(graph=graph, config=tensorflow.ConfigProto(device_count=
         _, l, predictions = session.run([optimizer, loss, train_prediction], feed_dict=feed_dict)
         if (step % 500 == 0):
             logging.info("Minibatch loss at step %d: %f" % (step, l))
-            logging.info("Minibatch accuracy: %.1f%%" % accuracy(predictions, batch_labels0))
+            logging.info("Minibatch accuracy: %.1f%%" % accuracy(predictions, batch_labels0, batch_labels1,
+                                                                 batch_labels2, batch_labels3, batch_labels4))
             logging.info("Validation accuracy: %.1f%%" % accuracy(valid_prediction.eval(), valid_labels))
     logging.info("Test accuracy: %.1f%%" % accuracy(test_prediction.eval(), test_labels))
 
