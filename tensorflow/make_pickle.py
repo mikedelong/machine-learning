@@ -263,9 +263,8 @@ with graph.as_default():
     train_prediction2 = tensorflow.nn.softmax(logits2)
     train_prediction3 = tensorflow.nn.softmax(logits3)
     train_prediction4 = tensorflow.nn.softmax(logits4)
-    train_prediction = tensorflow.pack([train_prediction0, train_prediction1, train_prediction2, train_prediction3,
-                                         train_prediction4])
-    # make the ndarray into a Tensor
+    train_prediction = tensorflow.pack([train_prediction0, train_prediction1, train_prediction2, train_prediction3, train_prediction4])
+    # todo expand this out to 5 softmax calls just like the above
     valid_prediction = tensorflow.nn.softmax(tensorflow.matmul(tf_valid_dataset, weights) + biases0)
     test_prediction = tensorflow.nn.softmax(tensorflow.matmul(tf_test_dataset, weights) + biases0)
 
@@ -298,7 +297,9 @@ with tensorflow.Session(graph=graph, config=tensorflow.ConfigProto(device_count=
             logging.info("Minibatch loss at step %d: %f" % (step, l))
             logging.info("Minibatch accuracy: %.1f%%" % accuracy(predictions, batch_labels0, batch_labels1,
                                                                  batch_labels2, batch_labels3, batch_labels4))
-            logging.info("Validation accuracy: %.1f%%" % accuracy(valid_prediction.eval(), valid_labels))
+            logging.info("Validation accuracy: %.1f%%" % accuracy(valid_prediction.eval(), valid_labels[0],
+                                                                  valid_labels[1], valid_labels[2], valid_labels[3],
+                                                                  valid_labels[4]))
     logging.info("Test accuracy: %.1f%%" % accuracy(test_prediction.eval(), test_labels))
 
 # with tensorflow.Session(graph=graph, config=tensorflow.ConfigProto(device_count={'GPU': 0})) as session:
