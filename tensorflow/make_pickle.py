@@ -10,8 +10,8 @@ import tensorflow
 logging.basicConfig(format='%(asctime)s : %(levelname)s :: %(message)s', level=logging.DEBUG)
 
 # todo fix the image size; our images aren't square
-image_size =  28  # Pixel width and height.
-image_height =  28
+image_size = 28  # Pixel width and height.
+image_height = 28
 image_width = 5 * 28
 pixel_depth = 255.0  # Number of levels per pixel.
 
@@ -137,6 +137,7 @@ def reformat_as_list(dataset, arg_labels, arg_num_labels, arg_image_height, arg_
 
     return dataset, result
 
+
 def reformat(dataset, arg_labels, arg_num_labels, arg_image_height, arg_image_width):
     dataset = dataset.reshape((-1, arg_image_height * arg_image_width)).astype(numpy.float32)
     # Map 0 to [1.0, 0.0, 0.0 ...], 1 to [0.0, 1.0, 0.0 ...]
@@ -149,8 +150,8 @@ def reformat(dataset, arg_labels, arg_num_labels, arg_image_height, arg_image_wi
         t1[numpy.arange(size), t0] = 1
         t2.append(t1)
     result = numpy.asanyarray(t2)
-
     return dataset, result
+
 
 def accuracy_old(predictions, labels):
     t0 = numpy.argmax(predictions, 1)
@@ -162,8 +163,8 @@ def accuracy_old(predictions, labels):
     # return (100.0 * numpy.sum(numpy.argmax(predictions, 1) == numpy.argmax(labels, 1))
     #         / predictions.shape[0])
 
-def accuracy(predictions, labels0, labels1, labels2, labels3, labels4):
 
+def accuracy(predictions, labels0, labels1, labels2, labels3, labels4):
     result = 0
     t0 = numpy.argmax(predictions[0], 1)
     t1 = numpy.argmax(labels0, 1)
@@ -192,11 +193,10 @@ def accuracy(predictions, labels0, labels1, labels2, labels3, labels4):
     t3 = numpy.sum(t2)
     result += 100.0 * t3 / predictions[4].shape[0]
 
-
-
     return result
     # return (100.0 * numpy.sum(numpy.argmax(predictions, 1) == numpy.argmax(labels, 1))
     #         / predictions.shape[0])
+
 
 pickle_file_name = maybe_pickle(['concatenate_output'], 1800)
 
@@ -218,7 +218,7 @@ num_labels = 11
 train_dataset, train_labels = reformat(train_data, train_labels, num_labels, image_height, image_width)
 valid_dataset, valid_labels = reformat(validation_data, validation_labels, num_labels, image_height, image_width)
 test_dataset, test_labels = reformat(test_data, test_labels, num_labels, image_height, image_width)
-logging.info('Training set: %s %s' % (train_dataset.shape, train_labels.shape)) # was train_labels[0].shape
+logging.info('Training set: %s %s' % (train_dataset.shape, train_labels.shape))  # was train_labels[0].shape
 logging.info('Validation set: %s %s' % (valid_dataset.shape, valid_labels.shape))
 logging.debug('Test set: %s %s ' % (test_dataset.shape, test_labels.shape))
 batch_size = 128
@@ -263,12 +263,25 @@ with graph.as_default():
     train_prediction2 = tensorflow.nn.softmax(logits2)
     train_prediction3 = tensorflow.nn.softmax(logits3)
     train_prediction4 = tensorflow.nn.softmax(logits4)
-    train_prediction = tensorflow.pack([train_prediction0, train_prediction1, train_prediction2, train_prediction3, train_prediction4])
+    train_prediction = tensorflow.pack(
+        [train_prediction0, train_prediction1, train_prediction2, train_prediction3, train_prediction4])
     # todo expand this out to 5 softmax calls just like the above
-    valid_prediction = tensorflow.nn.softmax(tensorflow.matmul(tf_valid_dataset, weights) + biases0)
-    test_prediction = tensorflow.nn.softmax(tensorflow.matmul(tf_test_dataset, weights) + biases0)
+    valid_prediction = tensorflow.pack([
+        tensorflow.nn.softmax(tensorflow.matmul(tf_valid_dataset, weights) + biases0),
+        tensorflow.nn.softmax(tensorflow.matmul(tf_valid_dataset, weights) + biases1),
+        tensorflow.nn.softmax(tensorflow.matmul(tf_valid_dataset, weights) + biases2),
+        tensorflow.nn.softmax(tensorflow.matmul(tf_valid_dataset, weights) + biases3),
+        tensorflow.nn.softmax(tensorflow.matmul(tf_valid_dataset, weights) + biases4)]),
 
-num_steps = 10001 # 3001
+    test_prediction = tensorflow.pack([
+
+        tensorflow.nn.softmax(tensorflow.matmul(tf_test_dataset, weights) + biases0),
+        tensorflow.nn.softmax(tensorflow.matmul(tf_test_dataset, weights) + biases1),
+        tensorflow.nn.softmax(tensorflow.matmul(tf_test_dataset, weights) + biases2),
+        tensorflow.nn.softmax(tensorflow.matmul(tf_test_dataset, weights) + biases3),
+        tensorflow.nn.softmax(tensorflow.matmul(tf_test_dataset, weights) + biases4) ])
+
+num_steps = 10001  # 3001
 
 with tensorflow.Session(graph=graph, config=tensorflow.ConfigProto(device_count={'GPU': 0})) as session:
     tensorflow.global_variables_initializer().run()
@@ -300,7 +313,8 @@ with tensorflow.Session(graph=graph, config=tensorflow.ConfigProto(device_count=
             logging.info("Validation accuracy: %.1f%%" % accuracy(valid_prediction.eval(), valid_labels[0],
                                                                   valid_labels[1], valid_labels[2], valid_labels[3],
                                                                   valid_labels[4]))
-    logging.info("Test accuracy: %.1f%%" % accuracy(test_prediction.eval(), test_labels))
+    logging.info("Test accuracy: %.1f%%" % accuracy(test_prediction.eval(), test_labels[0], test_labels[1], test_labels[2],
+                                                    test_labels[3], test_labels[4]))
 
 # with tensorflow.Session(graph=graph, config=tensorflow.ConfigProto(device_count={'GPU': 0})) as session:
 #     tensorflow.global_variables_initializer().run()
