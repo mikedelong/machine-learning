@@ -193,6 +193,35 @@ def accuracy(predictions, labels0, labels1, labels2, labels3, labels4):
     result += 100.0 * t3 / predictions[4].shape[0]
     return result
 
+def alt_accuracy(predictions, labels0, labels1, labels2, labels3, labels4):
+    result = 0
+    t0 = numpy.argmax(predictions[0])
+    t1 = numpy.argmax(labels0, 1)
+    t2 = t0 == t1
+    t3 = numpy.sum(t2)
+    result += 100.0 * t3 / predictions[0].shape[0]
+    t0 = numpy.argmax(predictions[1], 1)
+    t1 = numpy.argmax(labels1, 1)
+    t2 = t0 == t1
+    t3 = numpy.sum(t2)
+    result += 100.0 * t3 / predictions[1].shape[0]
+    t0 = numpy.argmax(predictions[2], 1)
+    t1 = numpy.argmax(labels2, 1)
+    t2 = t0 == t1
+    t3 = numpy.sum(t2)
+    result += 100.0 * t3 / predictions[2].shape[0]
+    t0 = numpy.argmax(predictions[3], 1)
+    t1 = numpy.argmax(labels3, 1)
+    t2 = t0 == t1
+    t3 = numpy.sum(t2)
+    result += 100.0 * t3 / predictions[3].shape[0]
+    t0 = numpy.argmax(predictions[4], 1)
+    t1 = numpy.argmax(labels4, 1)
+    t2 = t0 == t1
+    t3 = numpy.sum(t2)
+    result += 100.0 * t3 / predictions[4].shape[0]
+    return result
+
 
 pickle_file_name = maybe_pickle(['concatenate_output'], 1800)
 
@@ -262,7 +291,7 @@ with graph.as_default():
     train_prediction = tensorflow.pack(
         [train_prediction0, train_prediction1, train_prediction2, train_prediction3, train_prediction4])
     # todo expand this out to 5 softmax calls just like the above
-    valid_prediction = tensorflow.pack([
+    valid_prediction = numpy.asanyarray([
         tensorflow.nn.softmax(tensorflow.matmul(tf_valid_dataset, weights) + biases0),
         tensorflow.nn.softmax(tensorflow.matmul(tf_valid_dataset, weights) + biases1),
         tensorflow.nn.softmax(tensorflow.matmul(tf_valid_dataset, weights) + biases2),
@@ -303,7 +332,7 @@ with tensorflow.Session(graph=graph, config=tensorflow.ConfigProto(device_count=
             logging.info("Minibatch accuracy: %.1f%%" % accuracy(predictions, batch_labels0, batch_labels1,
                                                                  batch_labels2, batch_labels3, batch_labels4))
             # logging.info("Validation accuracy: %.1f%%" % accuracy(valid_prediction.eval(), valid_labels[0],
-            logging.info("Validation accuracy: %.1f%%" % accuracy(valid_prediction, valid_labels[0],
+            logging.info("Validation accuracy: %.1f%%" % alt_accuracy(valid_prediction, valid_labels[0],
                                                                   valid_labels[1], valid_labels[2], valid_labels[3],
                                                                   valid_labels[4]))
     logging.info(
