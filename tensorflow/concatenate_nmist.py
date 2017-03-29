@@ -8,6 +8,7 @@ from PIL import Image
 
 
 import idx2numpy
+import numpy
 
 
 start_time = time.time()
@@ -33,44 +34,71 @@ else:
 count = 0
 
 
-blank_image = Image.new(mode='L', size=(28, 28), color=0)
-blank_image.save(blank_file)
-for file_count in range(0, files_to_generate):
-    try:
-        output_filename = str(file_count) + '_'
-        current = random.randint(0, 99999)
-        t0 = [c for c in map(int, str(current))]
-        blanks_needed = 5 - len(t0)
-        sources = list()
-        for blanks in range(0, blanks_needed):
-            sources.append(blank_file)
-        for c0 in t0:
-            t1 = chr(c0 + ord('A'))
-            t2 = input_folder + t1
-            t3 = random.choice(os.listdir(t2 + '/'))
-            output_filename += t1
-            file_name = t2 + '/' + t3
-            logging.debug(file_name)
-            sources.append(file_name)
+def createSequences(arg_dataset_size, arg_image_height, arg_image_width, arg_ndarr, arg_labels_raw):
+    dataset = numpy.ndarray(shape=(arg_dataset_size, arg_image_height, arg_image_width), dtype=numpy.float32)
 
-        images = map(Image.open, sources)
-        widths, heights = zip(*(i.size for i in images))
+    data_labels = []
 
-        total_width = sum(widths)
-        max_height = max(heights)
+    i = 0
+    w = 0
+    while i < arg_dataset_size:
+        temp = numpy.hstack([arg_ndarr[w], arg_ndarr[w + 1], arg_ndarr[w + 2], arg_ndarr[w + 3], arg_ndarr[w + 4]])
+        dataset[i, :, :] = temp
+        temp_str = (labels_raw[w], labels_raw[
+                    w + 1], labels_raw[w + 2], labels_raw[w + 3], labels_raw[w + 4])
+        data_labels.append(temp_str)
+        w += 5
+        i += 1
 
-        new_image = Image.new('L', (total_width, max_height)) # mode was 'RGB'
+    numpy.array(data_labels)
 
-        x_offset = 0
-        for im in images:
-            new_image.paste(im, (x_offset, 0))
-            x_offset += im.size[0]
+    return dataset, data_labels
 
-        output_full_filename = output_folder + output_filename + '.png'
-        new_image.save(output_full_filename)
-        logging.debug('%d %s' % (file_count, output_full_filename))
-    except IOError as io_error:
-        logging.warn(io_error)
+# read data and convert idx file to numpy array
+ndarr = idx2numpy.convert_from_file('./train-images-idx3-ubyte')
+labels_raw = idx2numpy.convert_from_file('./train-labels-idx1-ubyte')
+
+data, labels = createSequences(1000, 28, 140, ndarr, labels_raw)
+
+pass
+# blank_image = Image.new(mode='L', size=(28, 28), color=0)
+# blank_image.save(blank_file)
+# for file_count in range(0, files_to_generate):
+#     try:
+#         output_filename = str(file_count) + '_'
+#         current = random.randint(0, 99999)
+#         t0 = [c for c in map(int, str(current))]
+#         blanks_needed = 5 - len(t0)
+#         sources = list()
+#         for blanks in range(0, blanks_needed):
+#             sources.append(blank_file)
+#         for c0 in t0:
+#             t1 = chr(c0 + ord('A'))
+#             t2 = input_folder + t1
+#             t3 = random.choice(os.listdir(t2 + '/'))
+#             output_filename += t1
+#             file_name = t2 + '/' + t3
+#             logging.debug(file_name)
+#             sources.append(file_name)
+#
+#         images = map(Image.open, sources)
+#         widths, heights = zip(*(i.size for i in images))
+#
+#         total_width = sum(widths)
+#         max_height = max(heights)
+#
+#         new_image = Image.new('L', (total_width, max_height)) # mode was 'RGB'
+#
+#         x_offset = 0
+#         for im in images:
+#             new_image.paste(im, (x_offset, 0))
+#             x_offset += im.size[0]
+#
+#         output_full_filename = output_folder + output_filename + '.png'
+#         new_image.save(output_full_filename)
+#         logging.debug('%d %s' % (file_count, output_full_filename))
+#     except IOError as io_error:
+#         logging.warn(io_error)
 
 finish_time = time.time()
 elapsed_hours, elapsed_remainder = divmod(finish_time - start_time, 3600)
