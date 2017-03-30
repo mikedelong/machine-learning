@@ -61,44 +61,6 @@ labels_raw = idx2numpy.convert_from_file('./train-labels-idx1-ubyte')
 data, labels = createSequences(1000, 28, 140, ndarr, labels_raw)
 
 pass
-# blank_image = Image.new(mode='L', size=(28, 28), color=0)
-# blank_image.save(blank_file)
-# for file_count in range(0, files_to_generate):
-#     try:
-#         output_filename = str(file_count) + '_'
-#         current = random.randint(0, 99999)
-#         t0 = [c for c in map(int, str(current))]
-#         blanks_needed = 5 - len(t0)
-#         sources = list()
-#         for blanks in range(0, blanks_needed):
-#             sources.append(blank_file)
-#         for c0 in t0:
-#             t1 = chr(c0 + ord('A'))
-#             t2 = input_folder + t1
-#             t3 = random.choice(os.listdir(t2 + '/'))
-#             output_filename += t1
-#             file_name = t2 + '/' + t3
-#             logging.debug(file_name)
-#             sources.append(file_name)
-#
-#         images = map(Image.open, sources)
-#         widths, heights = zip(*(i.size for i in images))
-#
-#         total_width = sum(widths)
-#         max_height = max(heights)
-#
-#         new_image = Image.new('L', (total_width, max_height)) # mode was 'RGB'
-#
-#         x_offset = 0
-#         for im in images:
-#             new_image.paste(im, (x_offset, 0))
-#             x_offset += im.size[0]
-#
-#         output_full_filename = output_folder + output_filename + '.png'
-#         new_image.save(output_full_filename)
-#         logging.debug('%d %s' % (file_count, output_full_filename))
-#     except IOError as io_error:
-#         logging.warn(io_error)
 
 finish_time = time.time()
 elapsed_hours, elapsed_remainder = divmod(finish_time - start_time, 3600)
