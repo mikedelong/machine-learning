@@ -4,12 +4,9 @@ import os
 import random
 import shutil
 import time
-from PIL import Image
-
 
 import idx2numpy
 import numpy
-
 
 start_time = time.time()
 
@@ -39,28 +36,30 @@ def createSequences(arg_dataset_size, arg_image_height, arg_image_width, arg_nda
 
     data_labels = []
 
-    i = 0
-    w = 0
-    while i < arg_dataset_size:
-        temp = numpy.hstack([arg_ndarr[w], arg_ndarr[w + 1], arg_ndarr[w + 2], arg_ndarr[w + 3], arg_ndarr[w + 4]])
-        dataset[i, :, :] = temp
-        temp_str = (labels_raw[w], labels_raw[
-                    w + 1], labels_raw[w + 2], labels_raw[w + 3], labels_raw[w + 4])
+    index = 0
+    word = 0
+    while index < arg_dataset_size:
+        temp = numpy.hstack(
+            [arg_ndarr[word], arg_ndarr[word + 1], arg_ndarr[word + 2], arg_ndarr[word + 3], arg_ndarr[word + 4]])
+        dataset[index, :, :] = temp
+        temp_str = (
+            labels_raw[word], labels_raw[word + 1], labels_raw[word + 2], labels_raw[word + 3], labels_raw[word + 4])
         data_labels.append(temp_str)
-        w += 5
-        i += 1
+        word += 5
+        index += 1
 
     numpy.array(data_labels)
 
     return dataset, data_labels
 
+
 # read data and convert idx file to numpy array
 ndarr = idx2numpy.convert_from_file('./train-images-idx3-ubyte')
 labels_raw = idx2numpy.convert_from_file('./train-labels-idx1-ubyte')
 
-data, labels = createSequences(1000, 28, 140, ndarr, labels_raw)
-
-pass
+dataset_size = 10000
+data, labels = createSequences(dataset_size, 28, 140, ndarr, labels_raw)
+logging.debug('we have %d data items and %d labels; expected %d' % (len(data), len(labels), dataset_size))
 
 finish_time = time.time()
 elapsed_hours, elapsed_remainder = divmod(finish_time - start_time, 3600)
