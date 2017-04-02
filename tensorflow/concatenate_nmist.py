@@ -42,8 +42,8 @@ def createSequences(arg_dataset_size, arg_image_height, arg_image_width, arg_nda
         temp = numpy.hstack(
             [arg_ndarr[word], arg_ndarr[word + 1], arg_ndarr[word + 2], arg_ndarr[word + 3], arg_ndarr[word + 4]])
         dataset[index, :, :] = temp
-        temp_str = (
-            labels_raw[word], labels_raw[word + 1], labels_raw[word + 2], labels_raw[word + 3], labels_raw[word + 4])
+        temp_str = (arg_labels_raw[word], arg_labels_raw[word + 1], arg_labels_raw[word + 2], arg_labels_raw[word + 3],
+                    arg_labels_raw[word + 4])
         data_labels.append(temp_str)
         word += 5
         index += 1
@@ -54,12 +54,20 @@ def createSequences(arg_dataset_size, arg_image_height, arg_image_width, arg_nda
 
 
 # read data and convert idx file to numpy array
-ndarr = idx2numpy.convert_from_file('./train-images-idx3-ubyte')
-labels_raw = idx2numpy.convert_from_file('./train-labels-idx1-ubyte')
+train_data_raw = idx2numpy.convert_from_file('./train-images-idx3-ubyte')
+train_labels_raw = idx2numpy.convert_from_file('./train-labels-idx1-ubyte')
+logging.debug('before calling create_sequence we have sizes %d and %d' % (len(train_data_raw), len(train_labels_raw)))
 
-dataset_size = 10000
-data, labels = createSequences(dataset_size, 28, 140, ndarr, labels_raw)
-logging.debug('we have %d data items and %d labels; expected %d' % (len(data), len(labels), dataset_size))
+train_dataset_size = 12000
+train_data, train_labels = createSequences(train_dataset_size, 28, 140, train_data_raw, train_labels_raw)
+logging.debug('we have %d data items and %d labels; expected %d' % (len(train_data), len(train_labels), train_dataset_size))
+
+test_data_raw = idx2numpy.convert_from_file('./t10k-images-idx3-ubyte')
+test_labels_raw = idx2numpy.convert_from_file('./t10k-labels-idx1-ubyte')
+logging.debug('before calling create_sequence we have sizes %d and %d' % (len(test_data_raw), len(test_labels_raw)))
+test_dataset_size = 2000
+test_data, test_labels = createSequences(test_dataset_size, 28, 140, test_data_raw, test_labels_raw)
+logging.debug('we have %d data items and %d labels; expected %d' % (len(test_data), len(test_labels), test_dataset_size))
 
 finish_time = time.time()
 elapsed_hours, elapsed_remainder = divmod(finish_time - start_time, 3600)
