@@ -5,8 +5,8 @@ import random
 import shutil
 import time
 
-import idx2numpy
-import numpy
+import numpy as np
+from tensorflow.examples.tutorials.mnist import input_data
 
 start_time = time.time()
 
@@ -30,44 +30,19 @@ else:
 
 count = 0
 
-
-def createSequences(arg_dataset_size, arg_image_height, arg_image_width, arg_ndarr, arg_labels_raw):
-    dataset = numpy.ndarray(shape=(arg_dataset_size, arg_image_height, arg_image_width), dtype=numpy.float32)
-
-    data_labels = []
-
-    index = 0
-    word = 0
-    while index < arg_dataset_size:
-        temp = numpy.hstack(
-            [arg_ndarr[word], arg_ndarr[word + 1], arg_ndarr[word + 2], arg_ndarr[word + 3], arg_ndarr[word + 4]])
-        dataset[index, :, :] = temp
-        temp_str = (arg_labels_raw[word], arg_labels_raw[word + 1], arg_labels_raw[word + 2], arg_labels_raw[word + 3],
-                    arg_labels_raw[word + 4])
-        data_labels.append(temp_str)
-        word += 5
-        index += 1
-
-    numpy.array(data_labels)
-
-    return dataset, data_labels
-
-
-# read data and convert idx file to numpy array
-train_data_raw = idx2numpy.convert_from_file('./train-images-idx3-ubyte')
-train_labels_raw = idx2numpy.convert_from_file('./train-labels-idx1-ubyte')
-logging.debug('before calling create_sequence we have sizes %d and %d' % (len(train_data_raw), len(train_labels_raw)))
-
-train_dataset_size = 12000
-train_data, train_labels = createSequences(train_dataset_size, 28, 140, train_data_raw, train_labels_raw)
-logging.debug('we have %d data items and %d labels; expected %d' % (len(train_data), len(train_labels), train_dataset_size))
-
-test_data_raw = idx2numpy.convert_from_file('./t10k-images-idx3-ubyte')
-test_labels_raw = idx2numpy.convert_from_file('./t10k-labels-idx1-ubyte')
-logging.debug('before calling create_sequence we have sizes %d and %d' % (len(test_data_raw), len(test_labels_raw)))
-test_dataset_size = 2000
-test_data, test_labels = createSequences(test_dataset_size, 28, 140, test_data_raw, test_labels_raw)
-logging.debug('we have %d data items and %d labels; expected %d' % (len(test_data), len(test_labels), test_dataset_size))
+mnist = input_data.read_data_sets("mnist_data/", one_hot=True)
+X_train = np.reshape(mnist.train.images[10000:], [-1, 28, 28, 1])
+y_train = mnist.train.labels[10000:]
+logging.debug('training data has shape %d x %d x %d x %d' % X_train.shape)
+logging.debug('training labels have shape %d x %d' % y_train.shape)
+X_valid = np.reshape(mnist.train.images[:10000], [-1, 28, 28, 1])
+y_valid = mnist.train.labels[:10000]
+logging.debug('validation data has shape %d x %d x %d x %d' % X_valid.shape)
+logging.debug('validation labels have shape %d x %d' % y_valid.shape)
+X_test = np.reshape(mnist.test.images, [-1, 28, 28, 1])
+y_test = mnist.test.labels
+logging.debug('test data has shape %d x %d x %d x %d' % X_test.shape)
+logging.debug('test labels have shape %d x %d' % y_test.shape)
 
 finish_time = time.time()
 elapsed_hours, elapsed_remainder = divmod(finish_time - start_time, 3600)
