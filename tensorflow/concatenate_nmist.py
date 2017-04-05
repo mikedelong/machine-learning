@@ -2,7 +2,7 @@ import json
 import logging
 import time
 
-import numpy as np
+import numpy
 import tensorflow
 from tensorflow.examples.tutorials.mnist import input_data
 
@@ -10,7 +10,7 @@ start_time = time.time()
 
 
 def accuracy(arg_predictions, arg_labels):
-    t0 = np.sum(np.argmax(arg_predictions, 1) == np.argmax(arg_labels, 1))
+    t0 = numpy.sum(numpy.argmax(arg_predictions, 1) == numpy.argmax(arg_labels, 1))
     result = (100.0 * t0 / arg_predictions.shape[0])
     return result
 
@@ -32,7 +32,7 @@ def conv2d(arg_input, arg_filter):
     return result
 
 
-def madata_pool_2x2(arg_value):
+def max_pool_2x2(arg_value):
     result = tensorflow.nn.max_pool(arg_value, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='SAME')
     return result
 
@@ -45,15 +45,15 @@ with open('test-nmist-settings.json') as data_file:
     random_seed = data['random_seed']
 
 mnist = input_data.read_data_sets("mnist_data/", one_hot=True)
-data_train = np.reshape(mnist.train.images[10000:], [-1, 28, 28, 1])
+data_train = numpy.reshape(mnist.train.images[10000:], [-1, 28, 28, 1])
 labels_train = mnist.train.labels[10000:]
 logging.debug('training data has shape %d x %d x %d x %d' % data_train.shape)
 logging.debug('training labels have shape %d x %d' % labels_train.shape)
-data_valid = np.reshape(mnist.train.images[:10000], [-1, 28, 28, 1])
+data_valid = numpy.reshape(mnist.train.images[:10000], [-1, 28, 28, 1])
 labels_valid = mnist.train.labels[:10000]
 logging.debug('validation data has shape %d x %d x %d x %d' % data_valid.shape)
 logging.debug('validation labels have shape %d x %d' % labels_valid.shape)
-data_test = np.reshape(mnist.test.images, [-1, 28, 28, 1])
+data_test = numpy.reshape(mnist.test.images, [-1, 28, 28, 1])
 labels_test = mnist.test.labels
 logging.debug('test data has shape %d x %d x %d x %d' % data_test.shape)
 logging.debug('test labels have shape %d x %d' % labels_test.shape)
@@ -92,10 +92,10 @@ with graph.as_default():
     # todo this looks ugly here; can we move it somewhere else?
     def model(arg_data):
         conv = conv2d(arg_data, weights_conv1)
-        pool = madata_pool_2x2(conv)
+        pool = max_pool_2x2(conv)
         hidden = tensorflow.nn.relu(pool + bias_conv1)
         conv = conv2d(hidden, weights_conv2)
-        pool = madata_pool_2x2(conv)
+        pool = max_pool_2x2(conv)
         hidden = tensorflow.nn.relu(pool + bias_conv2)
         shape = hidden.get_shape().as_list()
         reshape = tensorflow.reshape(hidden, [shape[0], shape[1] * shape[2] * shape[3]])
@@ -134,7 +134,7 @@ with tensorflow.Session(graph=graph, config=tensorflow.ConfigProto(device_count=
                          keep_fraction: 1.0}
             logging.debug(
                 'Validation accuracy: %.1f%%' % accuracy(valid_prediction.eval(feed_dict=feed_dict), labels_valid))
-    logging.debug('Test accuracy: %.1f%%' % accuracy(
+    logging.info('Test accuracy: %.1f%%' % accuracy(
         test_prediction.eval(feed_dict={train_set: batch_data, train_labels: batch_labels, keep_fraction: 1.0}),
         labels_test))
 
