@@ -61,7 +61,7 @@ logging.debug('test labels have shape %d x %d' % labels_test.shape)
 batch_size = 16
 channel_count = 1
 depth = 16
-hidden_count = 64
+hidden_count = 128 #  was 64
 image_height = 28
 image_width = 28
 drop_keep_fraction = 0.7
