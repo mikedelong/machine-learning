@@ -32,7 +32,7 @@ def conv2d(arg_input, arg_filter):
     return result
 
 
-def max_pool_2x2(arg_value):
+def max_pool(arg_value):
     result = tensorflow.nn.max_pool(arg_value, ksize=[1, 2, 2, 1], strides=[1, 2, 2, 1], padding='SAME')
     return result
 
@@ -67,8 +67,8 @@ image_width = 28
 drop_keep_fraction = 0.7
 label_count = 10
 patch_size = 5
-
-steps_limit = 3001
+step_size = 200
+steps_limit = 10001
 
 graph = tensorflow.Graph()
 with graph.as_default():
@@ -92,10 +92,10 @@ with graph.as_default():
     # todo this looks ugly here; can we move it somewhere else?
     def model(arg_data):
         conv = conv2d(arg_data, weights_conv1)
-        pool = max_pool_2x2(conv)
+        pool = max_pool(conv)
         hidden = tensorflow.nn.relu(pool + bias_conv1)
         conv = conv2d(hidden, weights_conv2)
-        pool = max_pool_2x2(conv)
+        pool = max_pool(conv)
         hidden = tensorflow.nn.relu(pool + bias_conv2)
         shape = hidden.get_shape().as_list()
         reshape = tensorflow.reshape(hidden, [shape[0], shape[1] * shape[2] * shape[3]])
@@ -126,7 +126,7 @@ with tensorflow.Session(graph=graph, config=tensorflow.ConfigProto(device_count=
         _, l, predictions = session.run([optimizer, loss, train_prediction], feed_dict={train_set: batch_data,
                                                                                         train_labels: batch_labels,
                                                                                         keep_fraction: drop_keep_fraction})
-        if step % 100 == 0:
+        if step % step_size == 0:
             logging.debug('Minibatch loss at step %d: %f' % (step, l))
             logging.debug('Minibatch accuracy: %.1f%%' % accuracy(predictions, batch_labels))
             feed_dict = {train_set: batch_data,
