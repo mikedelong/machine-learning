@@ -37,6 +37,22 @@ def max_pool(arg_value):
     return result
 
 
+def model(arg_data, arg_weights1, arg_weights2, arg_weights3, arg_weights4,
+          arg_bias1, arg_bias2, arg_bias3, arg_bias4, arg_keep_fraction):
+    conv = conv2d(arg_data, arg_weights1)
+    pool = max_pool(conv)
+    hidden = tensorflow.nn.relu(pool + arg_bias1)
+    conv = conv2d(hidden, arg_weights2)
+    pool = max_pool(conv)
+    hidden = tensorflow.nn.relu(pool + arg_bias2)
+    shape = hidden.get_shape().as_list()
+    reshape = tensorflow.reshape(hidden, [shape[0], shape[1] * shape[2] * shape[3]])
+    hidden = tensorflow.nn.relu(tensorflow.matmul(reshape, arg_weights3) + arg_bias3)
+    drop = tensorflow.nn.dropout(hidden, arg_keep_fraction)
+    result = tensorflow.matmul(drop, arg_weights4) + arg_bias4
+    return result
+
+
 logging.basicConfig(format='%(asctime)s : %(levelname)s :: %(message)s', level=logging.DEBUG)
 
 with open('test-nmist-settings.json') as data_file:
@@ -61,7 +77,7 @@ logging.debug('test labels have shape %d x %d' % labels_test.shape)
 batch_size = 16
 channel_count = 1
 depth = 16
-hidden_count = 128 #  was 64
+hidden_count = 128  # was 64
 image_height = 28
 image_width = 28
 drop_keep_fraction = 0.7
@@ -88,30 +104,16 @@ with graph.as_default():
     weights_conv4 = weight_variable([hidden_count, label_count])
     bias_conv4 = bias_variable([label_count])
 
-
-    # todo this looks ugly here; can we move it somewhere else?
-    def model(arg_data):
-        conv = conv2d(arg_data, weights_conv1)
-        pool = max_pool(conv)
-        hidden = tensorflow.nn.relu(pool + bias_conv1)
-        conv = conv2d(hidden, weights_conv2)
-        pool = max_pool(conv)
-        hidden = tensorflow.nn.relu(pool + bias_conv2)
-        shape = hidden.get_shape().as_list()
-        reshape = tensorflow.reshape(hidden, [shape[0], shape[1] * shape[2] * shape[3]])
-        hidden = tensorflow.nn.relu(tensorflow.matmul(reshape, weights_conv3) + bias_conv3)
-        drop = tensorflow.nn.dropout(hidden, keep_fraction)
-        result = tensorflow.matmul(drop, weights_conv4) + bias_conv4
-        return result
-
-
-    logits = model(train_set)
+    logits = model(train_set, weights_conv1, weights_conv2, weights_conv3, weights_conv4,
+                   bias_conv1, bias_conv2, bias_conv3, bias_conv4, keep_fraction)
     loss = tensorflow.reduce_mean(tensorflow.nn.softmax_cross_entropy_with_logits(logits, train_labels))
     optimizer = tensorflow.train.GradientDescentOptimizer(0.05).minimize(loss)
     train_prediction = tensorflow.nn.softmax(logits)
-    validation_logits = model(valid_set)
+    validation_logits = model(valid_set, weights_conv1, weights_conv2, weights_conv3, weights_conv4,
+                              bias_conv1, bias_conv2, bias_conv3, bias_conv4, keep_fraction)
     valid_prediction = tensorflow.nn.softmax(validation_logits)
-    test_logits = model(test_set)
+    test_logits = model(test_set, weights_conv1, weights_conv2, weights_conv3, weights_conv4,
+                        bias_conv1, bias_conv2, bias_conv3, bias_conv4, keep_fraction)
     test_prediction = tensorflow.nn.softmax(test_logits)
 
 with tensorflow.Session(graph=graph, config=tensorflow.ConfigProto(device_count={'GPU': 0})) as session:
