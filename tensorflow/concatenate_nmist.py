@@ -68,11 +68,11 @@ labels_test = mnist.test.labels
 logging.debug('test data has shape %d x %d x %d x %d' % data_test.shape)
 logging.debug('test labels have shape %d x %d' % labels_test.shape)
 
-batch_size = 16
+batch_size = 32
 channel_count = 1
 depth = 16
-drop_keep_fraction = 0.7
-hidden_count = 128  # was 64
+drop_keep_fraction = 0.65
+hidden_count = 128
 image_height = 28
 image_width = 28
 label_count = 10
