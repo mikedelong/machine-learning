@@ -113,7 +113,7 @@ with graph.as_default():
 
 with tensorflow.Session(graph=graph, config=tensorflow.ConfigProto(device_count={'GPU': 0})) as session:
     tensorflow.initialize_all_variables().run()
-    logging.debug('Initialized')
+    logging.debug('Initialized all variables.')
     batch_data = []
     batch_labels = []
     for step in range(steps_limit):
