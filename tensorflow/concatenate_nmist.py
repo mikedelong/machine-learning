@@ -14,10 +14,10 @@ def accuracy(arg_predictions, arg_labels):
     return result
 
 
-def weight_variable(arg_shape):
-    distribution = tensorflow.truncated_normal(arg_shape, stddev=0.1)
-    result = tensorflow.Variable(distribution)
-    return result
+# def weight_variable(arg_shape):
+#     distribution = tensorflow.truncated_normal(arg_shape, stddev=0.1)
+#     result = tensorflow.Variable(distribution)
+#     return result
 
 
 def bias_variable(arg_shape):
@@ -76,7 +76,7 @@ hidden_count = 128
 image_height = 28
 image_width = 28
 label_count = 10
-patch_size = 3 # was 5
+patch_size = 3  # was 5
 random_seed = 1
 step_size = 200
 steps_limit = 10001
@@ -90,13 +90,19 @@ with graph.as_default():
     test_set = tensorflow.constant(data_test)
     keep_fraction = tensorflow.placeholder(tensorflow.float32)
 
-    weights_conv1 = weight_variable([patch_size, patch_size, channel_count, depth])
-    bias_conv1 = bias_variable([depth])
-    weights_conv2 = weight_variable([patch_size, patch_size, depth, depth])
-    bias_conv2 = bias_variable([depth])
-    weights_conv3 = weight_variable([image_height // 4 * image_width // 4 * depth, hidden_count])
+    # weights_conv1 = weight_variable([patch_size, patch_size, channel_count, depth])
+    weights_conv1 = tensorflow.Variable(tensorflow.truncated_normal([patch_size, patch_size, channel_count, depth], stddev=0.1))
+    weights_conv2 = tensorflow.Variable(tensorflow.truncated_normal([patch_size, patch_size, depth, depth], stddev=0.1))
+    weights_conv3 = tensorflow.Variable(tensorflow.truncated_normal([image_height // 4 * image_width // 4 * depth, hidden_count], stddev=0.1))
+    # weights_conv3 = weight_variable([image_height // 4 * image_width // 4 * depth, hidden_count])
+    # weights_conv4 = weight_variable([hidden_count, label_count])
+    weights_conv4 = tensorflow.Variable(tensorflow.truncated_normal([hidden_count, label_count], stddev=0.1))
+    # bias_conv1 = bias_variable([depth])
+    bias_conv1 = tensorflow.Variable(tensorflow.constant(0.1, shape=[depth]))
+    # weights_conv2 = weight_variable([patch_size, patch_size, depth, depth])
+    # bias_conv2 = bias_variable([depth])
+    bias_conv2 = tensorflow.Variable(tensorflow.constant(0.1, shape=[depth]))
     bias_conv3 = bias_variable([hidden_count])
-    weights_conv4 = weight_variable([hidden_count, label_count])
     bias_conv4 = bias_variable([label_count])
 
     logits = model(train_set, weights_conv1, weights_conv2, weights_conv3, weights_conv4, bias_conv1, bias_conv2,
@@ -112,7 +118,11 @@ with graph.as_default():
     test_prediction = tensorflow.nn.softmax(test_logits)
 
 with tensorflow.Session(graph=graph, config=tensorflow.ConfigProto(device_count={'GPU': 0})) as session:
-    tensorflow.initialize_all_variables().run()
+    if True:
+        tensorflow.initialize_all_variables().run()
+    else:
+        tensorflow.global_variables_initializer()
+        # tensorflow.local_variables_initializer()
     logging.debug('Initialized all variables.')
     batch_data = []
     batch_labels = []
